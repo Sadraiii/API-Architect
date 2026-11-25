@@ -3,6 +3,7 @@ using System.Threading.RateLimiting;
 using ApiArchitect.Api.Data;
 using ApiArchitect.Api.Features.Auth;
 using ApiArchitect.Api.Features.Collections;
+using ApiArchitect.Api.Features.Designs;
 using ApiArchitect.Api.Features.Environments;
 using ApiArchitect.Api.Features.Execution;
 using ApiArchitect.Api.Features.Projects;
@@ -146,6 +147,7 @@ app.MapSendSavedRequestEndpoint();
 app.MapEnvironmentEndpoints();
 app.MapExecutionEndpoints();
 app.MapSpecificationEndpoints();
+app.MapDesignEndpoints();
 
 // Unknown /api routes are real 404s; every other unknown path belongs to the SPA's client-side router.
 app.MapFallback("/api/{**path}", () => TypedResults.NotFound());
