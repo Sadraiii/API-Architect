@@ -245,7 +245,7 @@ defaulting to `Host=localhost;Port=5432;Username=postgres;Password=postgres`, wh
 `docker compose up -d` is all you need. To re-run a single test class:
 
 ```bash
-dotnet test -- --filter-class "*ProjectTests"
+dotnet test --filter-class "*ProjectTests"
 ```
 
 Type-check the front end with `npm run typecheck` in `web/`.
