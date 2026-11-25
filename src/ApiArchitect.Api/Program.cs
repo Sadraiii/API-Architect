@@ -1,6 +1,8 @@
+using System.Security.Claims;
 using System.Threading.RateLimiting;
 using ApiArchitect.Api.Data;
 using ApiArchitect.Api.Features.Auth;
+using ApiArchitect.Api.Features.Execution;
 using ApiArchitect.Api.Features.Projects;
 using ApiArchitect.Api.Infrastructure;
 using Microsoft.AspNetCore.Identity;
@@ -60,6 +62,12 @@ builder.Services.ConfigureApplicationCookie(options =>
 
 var rateLimits = builder.Configuration.GetSection(RateLimitingOptions.SectionName).Get<RateLimitingOptions>()
     ?? new RateLimitingOptions();
+var executionOptions = builder.Configuration.GetSection(ExecutionOptions.SectionName).Get<ExecutionOptions>()
+    ?? new ExecutionOptions();
+builder.Services.Configure<ExecutionOptions>(builder.Configuration.GetSection(ExecutionOptions.SectionName));
+builder.Services.AddSingleton<RequestExecutor>();
+builder.Services.AddScoped<ExecutionHistory>();
+
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
@@ -69,6 +77,15 @@ builder.Services.AddRateLimiter(options =>
             _ => new FixedWindowRateLimiterOptions
             {
                 PermitLimit = rateLimits.AuthPermitsPerMinute,
+                Window = TimeSpan.FromMinutes(1),
+            }));
+    // Per user: every execution makes this server call out, so one account must not turn it into a scanner.
+    options.AddPolicy(ExecutionEndpoints.RateLimitPolicy, context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            context.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "anonymous",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = executionOptions.PermitsPerMinute,
                 Window = TimeSpan.FromMinutes(1),
             }));
 });
@@ -113,6 +130,7 @@ if (app.Environment.IsDevelopment())
 app.MapHealthChecks("/health");
 app.MapAuthEndpoints();
 app.MapProjectEndpoints();
+app.MapExecutionEndpoints();
 
 // Unknown /api routes are real 404s; every other unknown path belongs to the SPA's client-side router.
 app.MapFallback("/api/{**path}", () => TypedResults.NotFound());
