@@ -64,6 +64,15 @@ export function ProjectPage() {
             <dd>{new Date(p.updatedAt).toLocaleString()}</dd>
           </dl>
 
+          <nav className="mt-8 flex gap-3 text-sm" aria-label="Project workspace">
+            <Link to={`/projects/${p.id}/collections`} className="rounded-md border border-zinc-200 px-3 py-2 hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-900">
+              Collections
+            </Link>
+            <Link to={`/projects/${p.id}/environments`} className="rounded-md border border-zinc-200 px-3 py-2 hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-900">
+              Environments
+            </Link>
+          </nav>
+
           <section className="mt-10 rounded-lg border border-red-200 p-4 dark:border-red-900">
             <h2 className="text-sm font-semibold">Delete project</h2>
             <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">This removes the project and everything in it. It can't be undone.</p>
