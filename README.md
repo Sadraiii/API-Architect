@@ -41,7 +41,8 @@ In `src/ApiArchitect.Api/appsettings*.json`, or override with `dotnet user-secre
 | `Execution:MaxResponseBytes` | 5 MB | Larger responses are cut off |
 | `Execution:HistoryLimitPerProject` | `100` | Saved requests in history |
 
-The rest are in `ExecutionOptions.cs` and `appsettings.json`.
+The rest are in `ExecutionOptions.cs` and `appsettings.json`. Cloud metadata addresses such as 169.254.169.254 are
+always blocked, and redirects are shown, not followed.
 
 ## Develop
 

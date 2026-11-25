@@ -1,3 +1,4 @@
+using ApiArchitect.Api.Features.Execution;
 using ApiArchitect.Api.Features.Projects;
 using ApiArchitect.Api.Features.Specifications;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -9,6 +10,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : Ident
 {
     public DbSet<Project> Projects => Set<Project>();
 
+    public DbSet<RequestExecution> RequestExecutions => Set<RequestExecution>();
     public DbSet<ApiSpecification> ApiSpecifications => Set<ApiSpecification>();
 
     protected override void OnModelCreating(ModelBuilder builder)
@@ -29,6 +31,28 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : Ident
 
             // Serves "my projects, most recently updated first", the dashboard query.
             project.HasIndex(p => new { p.OwnerId, p.UpdatedAt });
+        });
+
+        builder.Entity<RequestExecution>(execution =>
+        {
+            execution.Property(e => e.Method).HasMaxLength(10);
+            execution.Property(e => e.Url).HasMaxLength(ExecutionRules.UrlMaxLength);
+            execution.Property(e => e.RequestContentType).HasMaxLength(ExecutionRules.ContentTypeMaxLength);
+            execution.Property(e => e.AuthKind).HasConversion<string>().HasMaxLength(20);
+            execution.Property(e => e.AuthName).HasMaxLength(ExecutionRules.HeaderNameMaxLength);
+            execution.Property(e => e.ReasonPhrase).HasMaxLength(200);
+            execution.Property(e => e.ErrorCode).HasMaxLength(50);
+            execution.Property(e => e.ErrorMessage).HasMaxLength(500);
+            execution.ComplexCollection(e => e.RequestHeaders, headers => headers.ToJson());
+            execution.ComplexCollection(e => e.ResponseHeaders, headers => headers.ToJson());
+
+            execution.HasOne(e => e.Project)
+                .WithMany()
+                .HasForeignKey(e => e.ProjectId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Serves the history list and the prune after each insert.
+            execution.HasIndex(e => new { e.ProjectId, e.ExecutedAt });
         });
 
         builder.Entity<ApiSpecification>(specification =>
