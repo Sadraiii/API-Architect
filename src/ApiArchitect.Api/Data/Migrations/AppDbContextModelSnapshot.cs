@@ -16,7 +16,7 @@ partial class AppDbContextModelSnapshot : ModelSnapshot
     // If you encounter a merge conflict in the line below, it means you need to
     // discard one of the migration branches and recreate its migrations on top of
     // the other branch. See https://aka.ms/efcore-docs-migrations-conflicts for more info.
-    public override string LastMigrationId => "20261125184904_InitialCreate";
+    public override string LastMigrationId => "20261125185751_AddApiSpecifications";
 
     protected override void BuildModel(ModelBuilder modelBuilder)
     {
@@ -128,6 +128,52 @@ partial class AppDbContextModelSnapshot : ModelSnapshot
                 b.HasIndex("OwnerId", "UpdatedAt");
 
                 b.ToTable("Projects");
+            });
+
+        modelBuilder.Entity("ApiArchitect.Api.Features.Specifications.ApiSpecification", b =>
+            {
+                b.Property<Guid>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("uuid");
+
+                b.Property<string>("Content")
+                    .IsRequired()
+                    .HasColumnType("text");
+
+                b.Property<DateTimeOffset>("CreatedAt")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("Name")
+                    .IsRequired()
+                    .HasMaxLength(100)
+                    .HasColumnType("character varying(100)");
+
+                b.Property<string>("OpenApiVersion")
+                    .IsRequired()
+                    .HasMaxLength(20)
+                    .HasColumnType("character varying(20)");
+
+                b.Property<Guid>("ProjectId")
+                    .HasColumnType("uuid");
+
+                b.Property<string>("Title")
+                    .IsRequired()
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<DateTimeOffset>("UpdatedAt")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("Version")
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .HasColumnType("character varying(50)");
+
+                b.HasKey("Id");
+
+                b.HasIndex("ProjectId", "UpdatedAt");
+
+                b.ToTable("ApiSpecifications");
             });
 
         modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -269,6 +315,17 @@ partial class AppDbContextModelSnapshot : ModelSnapshot
                     .HasForeignKey("OwnerId")
                     .OnDelete(DeleteBehavior.Cascade)
                     .IsRequired();
+            });
+
+        modelBuilder.Entity("ApiArchitect.Api.Features.Specifications.ApiSpecification", b =>
+            {
+                b.HasOne("ApiArchitect.Api.Features.Projects.Project", "Project")
+                    .WithMany()
+                    .HasForeignKey("ProjectId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
+
+                b.Navigation("Project");
             });
 
         modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
