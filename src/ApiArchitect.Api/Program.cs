@@ -2,10 +2,13 @@ using System.Security.Claims;
 using System.Threading.RateLimiting;
 using ApiArchitect.Api.Data;
 using ApiArchitect.Api.Features.Auth;
+using ApiArchitect.Api.Features.Collections;
+using ApiArchitect.Api.Features.Environments;
 using ApiArchitect.Api.Features.Execution;
 using ApiArchitect.Api.Features.Projects;
 using ApiArchitect.Api.Features.Specifications;
 using ApiArchitect.Api.Infrastructure;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
@@ -17,6 +20,12 @@ builder.Services.AddDbContext<AppDbContext>(options =>
         ?? throw new InvalidOperationException("Connection string 'Database' is not configured.")));
 
 builder.Services.AddSingleton(TimeProvider.System);
+
+// Data Protection encrypts the auth cookie and environment secrets. The application name keeps the key ring
+// shared across instances and deployments; production must also persist the keys (see README).
+builder.Services.AddDataProtection().SetApplicationName("ApiArchitect");
+builder.Services.AddSingleton<EnvironmentSecrets>();
+builder.Services.AddSingleton<RequestResolver>();
 
 // Authentication: ASP.NET Core Identity with its application cookie only (no bearer tokens).
 builder.Services.AddAuthentication(IdentityConstants.ApplicationScheme).AddIdentityCookies();
@@ -131,6 +140,10 @@ if (app.Environment.IsDevelopment())
 app.MapHealthChecks("/health");
 app.MapAuthEndpoints();
 app.MapProjectEndpoints();
+app.MapCollectionEndpoints();
+app.MapSavedRequestEndpoints();
+app.MapSendSavedRequestEndpoint();
+app.MapEnvironmentEndpoints();
 app.MapExecutionEndpoints();
 app.MapSpecificationEndpoints();
 

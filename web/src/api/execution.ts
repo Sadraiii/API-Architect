@@ -99,3 +99,16 @@ export function useClearHistory(projectId: string) {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: historyKey(projectId) }),
   });
 }
+
+/** Sends a saved request, filling {{variables}} from the given environment, and records it in history. */
+export function useSendSavedRequest(projectId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ requestId, environmentId }: { requestId: string; environmentId: string | null }) =>
+      api<Execution>(
+        `/api/requests/${requestId}/execute${environmentId ? `?environmentId=${encodeURIComponent(environmentId)}` : ""}`,
+        { method: "POST" },
+      ),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: historyKey(projectId) }),
+  });
+}
