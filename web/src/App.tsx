@@ -6,6 +6,7 @@ import { AuthPage } from "./pages/AuthPage";
 import { ProjectPage } from "./pages/ProjectPage";
 import { ProjectsPage } from "./pages/ProjectsPage";
 import { RequestPage } from "./pages/RequestPage";
+import { SpecificationPage } from "./pages/SpecificationPage";
 
 /** Sends signed-out visitors to the login page, remembering where they were going. */
 function RequireSignIn() {
@@ -29,6 +30,7 @@ export function App() {
           <Route path="/projects" element={<ProjectsPage />} />
           <Route path="/projects/:id" element={<ProjectPage />} />
           <Route path="/projects/:id/request" element={<RequestPage />} />
+          <Route path="/specifications/:id" element={<SpecificationPage />} />
           <Route path="*" element={<p className="text-sm">Page not found.</p>} />
         </Route>
       </Route>

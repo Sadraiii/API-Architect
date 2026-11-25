@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "react-router";
 import { ApiError } from "../api/client";
 import { useDeleteProject, useProject, useUpdateProject } from "../api/projects";
 import { ProjectForm } from "../components/ProjectForm";
+import { ProjectSpecifications } from "../components/ProjectSpecifications";
 import { Button, ErrorMessage } from "../components/ui";
 
 export function ProjectPage() {
@@ -71,6 +72,8 @@ export function ProjectPage() {
             <dt className="text-zinc-500">Updated</dt>
             <dd>{new Date(p.updatedAt).toLocaleString()}</dd>
           </dl>
+
+          <ProjectSpecifications projectId={p.id} />
 
           <section className="mt-10 rounded-lg border border-red-200 p-4 dark:border-red-900">
             <h2 className="text-sm font-semibold">Delete project</h2>

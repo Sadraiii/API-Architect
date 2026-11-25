@@ -4,6 +4,7 @@ using ApiArchitect.Api.Data;
 using ApiArchitect.Api.Features.Auth;
 using ApiArchitect.Api.Features.Execution;
 using ApiArchitect.Api.Features.Projects;
+using ApiArchitect.Api.Features.Specifications;
 using ApiArchitect.Api.Infrastructure;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -131,6 +132,7 @@ app.MapHealthChecks("/health");
 app.MapAuthEndpoints();
 app.MapProjectEndpoints();
 app.MapExecutionEndpoints();
+app.MapSpecificationEndpoints();
 
 // Unknown /api routes are real 404s; every other unknown path belongs to the SPA's client-side router.
 app.MapFallback("/api/{**path}", () => TypedResults.NotFound());

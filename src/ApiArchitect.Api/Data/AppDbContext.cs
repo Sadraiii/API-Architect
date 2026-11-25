@@ -1,5 +1,6 @@
 using ApiArchitect.Api.Features.Execution;
 using ApiArchitect.Api.Features.Projects;
+using ApiArchitect.Api.Features.Specifications;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,6 +11,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : Ident
     public DbSet<Project> Projects => Set<Project>();
 
     public DbSet<RequestExecution> RequestExecutions => Set<RequestExecution>();
+    public DbSet<ApiSpecification> ApiSpecifications => Set<ApiSpecification>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -51,6 +53,22 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : Ident
 
             // Serves the history list and the prune after each insert.
             execution.HasIndex(e => new { e.ProjectId, e.ExecutedAt });
+        });
+
+        builder.Entity<ApiSpecification>(specification =>
+        {
+            specification.Property(s => s.Name).HasMaxLength(SpecificationRules.NameMaxLength);
+            specification.Property(s => s.Title).HasMaxLength(SpecificationRules.TitleMaxLength);
+            specification.Property(s => s.Version).HasMaxLength(SpecificationRules.VersionMaxLength);
+            specification.Property(s => s.OpenApiVersion).HasMaxLength(SpecificationRules.OpenApiVersionMaxLength);
+
+            specification.HasOne(s => s.Project)
+                .WithMany()
+                .HasForeignKey(s => s.ProjectId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Serves "a project's specifications, most recently updated first".
+            specification.HasIndex(s => new { s.ProjectId, s.UpdatedAt });
         });
     }
 }
