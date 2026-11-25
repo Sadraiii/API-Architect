@@ -1,0 +1,23 @@
+# PostgreSQL for running API Architect on your own machine.
+# The app itself runs outside Docker (dotnet run) so it can call APIs on your localhost.
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: api_architect
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      # Bound to 127.0.0.1 only: reachable from this machine, not from your network.
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  pgdata:
