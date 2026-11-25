@@ -27,9 +27,15 @@ public sealed class ExecutionOptions
     public int PermitsPerMinute { get; init; } = 60;
 
     /// <summary>
-    /// CIDR ranges exempt from the internal-address block, such as <c>10.1.0.0/16</c>. Empty by default.
-    /// Only set this for a self-hosted install that must reach a private network, and never include the range
-    /// this app or its database runs in. The integration tests use it to reach a loopback test server.
+    /// Whether requests may reach loopback and private networks (localhost, 192.168.x.x, Docker networks...).
+    /// True by default because API Architect runs locally for one person, and testing APIs on your own machine is
+    /// the main use. Set it to false if the app is ever reachable by anyone else: it would then let them call
+    /// anything on your network. Cloud metadata addresses are blocked either way.
+    /// </summary>
+    public bool AllowPrivateNetworks { get; init; } = true;
+
+    /// <summary>
+    /// With <see cref="AllowPrivateNetworks"/> false, CIDR ranges still allowed, such as <c>10.1.0.0/16</c>.
     /// </summary>
     public string[] AllowedNetworks { get; init; } = [];
 }

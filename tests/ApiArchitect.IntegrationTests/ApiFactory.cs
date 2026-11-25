@@ -25,6 +25,8 @@ public class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
         // Every test signs in from the same address, so the per-IP auth limit would trip.
         builder.UseSetting("RateLimiting:AuthPermitsPerMinute", "10000");
         builder.UseSetting("Logging:LogLevel:Default", "Warning");
+        // The strict mode a shared server would need; LoopbackApiFactory covers the local default.
+        builder.UseSetting("Execution:AllowPrivateNetworks", "false");
         ConfigureSettings(builder);
     }
 

@@ -120,8 +120,8 @@ export function RequestPage() {
             </Button>
           </div>
           <p className="text-xs text-zinc-500">
-            Requests are sent from the API Architect server, so they can reach public APIs only. localhost and private network
-            addresses are blocked.
+            Requests are sent by the API Architect server running on your machine, so localhost and your local network work.
+            Redirects are shown, not followed.
           </p>
 
           <Tabs tabs={editorTabs} active={tab} onChange={setTab} />

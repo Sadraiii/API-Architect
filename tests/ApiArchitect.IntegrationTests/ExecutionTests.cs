@@ -6,7 +6,7 @@ using static ApiArchitect.IntegrationTests.ExecutionTestHelpers;
 
 namespace ApiArchitect.IntegrationTests;
 
-/// <summary>Executor behaviour with the production defaults: nothing internal is reachable.</summary>
+/// <summary>Executor behaviour in strict mode (AllowPrivateNetworks off): nothing internal is reachable.</summary>
 [Collection(ApiCollection.Name)]
 public sealed class ExecutionTests(ApiFactory factory)
 {

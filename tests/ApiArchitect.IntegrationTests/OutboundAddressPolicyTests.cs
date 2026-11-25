@@ -5,7 +5,8 @@ namespace ApiArchitect.IntegrationTests;
 
 public sealed class OutboundAddressPolicyTests
 {
-    private static readonly OutboundAddressPolicy DefaultPolicy = new([]);
+    private static readonly OutboundAddressPolicy DefaultPolicy = new(allowPrivateNetworks: false, []);
+    private static readonly OutboundAddressPolicy LocalPolicy = new(allowPrivateNetworks: true, []);
 
     [Theory]
     [InlineData("127.0.0.1")]
@@ -48,10 +49,34 @@ public sealed class OutboundAddressPolicyTests
     [Fact]
     public void Allowed_networks_override_the_block_for_their_range_only()
     {
-        var policy = new OutboundAddressPolicy([IPNetwork.Parse("10.1.0.0/16")]);
+        var policy = new OutboundAddressPolicy(allowPrivateNetworks: false, [IPNetwork.Parse("10.1.0.0/16")]);
 
         Assert.True(policy.IsAllowed(IPAddress.Parse("10.1.2.3")));
         Assert.False(policy.IsAllowed(IPAddress.Parse("10.2.0.1")));
         Assert.False(policy.IsAllowed(IPAddress.Parse("127.0.0.1")));
+    }
+
+    [Theory]
+    [InlineData("127.0.0.1")]
+    [InlineData("::1")]
+    [InlineData("192.168.1.20")]
+    [InlineData("172.17.0.1")] // Docker bridge gateway
+    [InlineData("10.0.0.5")]
+    public void Local_mode_allows_loopback_and_private_networks(string address)
+    {
+        Assert.True(LocalPolicy.IsAllowed(IPAddress.Parse(address)));
+    }
+
+    [Theory]
+    [InlineData("169.254.169.254")]
+    [InlineData("::ffff:169.254.169.254")]
+    [InlineData("168.63.129.16")]
+    [InlineData("fd00:ec2::254")]
+    [InlineData("0.0.0.0")]
+    [InlineData("224.0.0.1")]
+    public void Metadata_and_reserved_addresses_are_blocked_even_in_local_mode(string address)
+    {
+        Assert.False(LocalPolicy.IsAllowed(IPAddress.Parse(address)));
+        Assert.False(new OutboundAddressPolicy(true, [IPNetwork.Parse("0.0.0.0/0")]).IsAllowed(IPAddress.Parse(address)));
     }
 }

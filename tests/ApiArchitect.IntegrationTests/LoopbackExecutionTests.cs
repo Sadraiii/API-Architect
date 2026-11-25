@@ -5,7 +5,7 @@ using static ApiArchitect.IntegrationTests.ExecutionTestHelpers;
 
 namespace ApiArchitect.IntegrationTests;
 
-/// <summary>Executor behaviour against a real HTTP server, with loopback allowed for this collection only.</summary>
+/// <summary>Executor behaviour against a real HTTP server, with the local-use settings (private networks allowed).</summary>
 [Collection(LoopbackApiCollection.Name)]
 public sealed class LoopbackExecutionTests(LoopbackApiFactory factory)
 {
@@ -150,10 +150,32 @@ public sealed class LoopbackExecutionTests(LoopbackApiFactory factory)
         var (client, _) = await factory.CreateSignedInClientAsync();
         var projectId = await client.CreateProjectAsync();
 
-        // Port 1 on loopback: allowed by this factory's policy, but nothing listens there.
+        // Port 1 on loopback: allowed in local mode, but nothing listens there.
         var execution = await client.ExecuteAsync(projectId, Get("http://127.0.0.1:1/"));
 
         Assert.Equal(ExecutionErrorCodes.ConnectionFailed, execution.Error?.Code);
+    }
+
+    [Fact]
+    public async Task Cloud_metadata_stays_blocked_with_private_networks_allowed()
+    {
+        var (client, _) = await factory.CreateSignedInClientAsync();
+        var projectId = await client.CreateProjectAsync();
+
+        var execution = await client.ExecuteAsync(projectId, Get("http://169.254.169.254/latest/meta-data/"));
+
+        Assert.Equal(ExecutionErrorCodes.BlockedAddress, execution.Error?.Code);
+    }
+
+    [Fact]
+    public async Task Localhost_by_name_is_reachable_in_local_mode()
+    {
+        var (client, _) = await factory.CreateSignedInClientAsync();
+        var projectId = await client.CreateProjectAsync();
+
+        var execution = await client.ExecuteAsync(projectId, Get($"http://localhost:{factory.Target.BaseUrl.Port}/echo"));
+
+        Assert.Equal(200, execution.StatusCode);
     }
 
     [Fact]

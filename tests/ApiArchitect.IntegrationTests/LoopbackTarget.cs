@@ -7,8 +7,7 @@ using Microsoft.Extensions.Logging;
 namespace ApiArchitect.IntegrationTests;
 
 /// <summary>
-/// A real HTTP server on 127.0.0.1 for the executor to call. Loopback is blocked by default, so the factory that
-/// uses it allows 127.0.0.0/8 explicitly.
+/// A real HTTP server on 127.0.0.1 for the executor to call.
 /// </summary>
 public sealed class LoopbackTarget : IAsyncDisposable
 {
@@ -65,8 +64,8 @@ public sealed class LoopbackTarget : IAsyncDisposable
 }
 
 /// <summary>
-/// The app with loopback allowed, small limits so tests can hit them, and a test server to call.
-/// Its own collection and database, so the relaxed settings never reach other tests.
+/// The app as configured for local use (private networks allowed), with small limits so tests can hit them, and a
+/// test server to call. Its own collection and database, so its settings never reach other tests.
 /// </summary>
 public sealed class LoopbackApiFactory : ApiFactory
 {
@@ -77,7 +76,7 @@ public sealed class LoopbackApiFactory : ApiFactory
 
     protected override void ConfigureSettings(IWebHostBuilder builder)
     {
-        builder.UseSetting("Execution:AllowedNetworks:0", "127.0.0.0/8");
+        builder.UseSetting("Execution:AllowPrivateNetworks", "true");
         builder.UseSetting("Execution:MaxResponseBytes", MaxResponseBytes.ToString());
         builder.UseSetting("Execution:MaxStoredBodyBytes", "1024");
         builder.UseSetting("Execution:TimeoutSeconds", "2");

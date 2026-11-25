@@ -27,7 +27,7 @@ public sealed partial class RequestExecutor : IDisposable
         _options = options.Value;
         _logger = logger;
 
-        var policy = new OutboundAddressPolicy(_options.AllowedNetworks.Select(IPNetwork.Parse));
+        var policy = new OutboundAddressPolicy(_options.AllowPrivateNetworks, _options.AllowedNetworks.Select(IPNetwork.Parse));
         var handler = new SocketsHttpHandler
         {
             ConnectCallback = policy.ConnectAsync,
@@ -184,7 +184,7 @@ public sealed partial class RequestExecutor : IDisposable
         }
         catch (HttpRequestException ex)
         {
-            var (code, text) = Describe(ex, host);
+            var (code, text) = Describe(ex, host, _options.AllowPrivateNetworks);
             return LoggedFailure(code, text, request.Method, host, stopwatch);
         }
     }
@@ -318,13 +318,14 @@ public sealed partial class RequestExecutor : IDisposable
         return encoding.GetString(bytes);
     }
 
-    private static (string Code, string Message) Describe(HttpRequestException ex, string host)
+    private static (string Code, string Message) Describe(HttpRequestException ex, string host, bool privateAllowed)
     {
         if (ex.InnerException is BlockedAddressException)
         {
-            return (ExecutionErrorCodes.BlockedAddress,
-                $"'{host}' resolves to a private, loopback or other internal address, and requests there are blocked. "
-                + "Requests run on the API Architect server, so they can only reach APIs on the public internet.");
+            return (ExecutionErrorCodes.BlockedAddress, privateAllowed
+                ? $"'{host}' resolves to a cloud metadata or reserved address, which requests may never reach."
+                : $"'{host}' resolves to a private, loopback or other internal address, and requests there are blocked "
+                  + "(Execution:AllowPrivateNetworks is off).");
         }
 
         if (ex.InnerException is SocketException { SocketErrorCode: SocketError.HostNotFound or SocketError.NoData or SocketError.TryAgain }
@@ -338,7 +339,7 @@ public sealed partial class RequestExecutor : IDisposable
             HttpRequestError.SecureConnectionError =>
                 (ExecutionErrorCodes.TlsFailure, $"The TLS connection to '{host}' failed. Its certificate may be invalid or untrusted."),
             HttpRequestError.ConnectionError =>
-                (ExecutionErrorCodes.ConnectionFailed, $"Couldn't connect to '{host}'. The server refused or didn't answer."),
+                (ExecutionErrorCodes.ConnectionFailed, $"Couldn't connect to '{host}'. Check that the API is running and the port is right."),
             HttpRequestError.InvalidResponse or HttpRequestError.ResponseEnded =>
                 (ExecutionErrorCodes.InvalidResponse, $"'{host}' sent an invalid or incomplete HTTP response."),
             _ => (ExecutionErrorCodes.RequestFailed, $"The request to '{host}' failed."),
