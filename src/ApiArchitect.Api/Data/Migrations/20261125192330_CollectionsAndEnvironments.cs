@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace ApiArchitect.Api.Data.Migrations;
 
 /// <inheritdoc />
-public partial class _20261125190252_CollectionsAndEnvironments : Migration
+public partial class _20261125192330_CollectionsAndEnvironments : Migration
 {
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
@@ -122,6 +122,11 @@ public partial class _20261125190252_CollectionsAndEnvironments : Migration
             });
 
         migrationBuilder.CreateIndex(
+            name: "IX_RequestExecutions_RequestId_ExecutedAt",
+            table: "RequestExecutions",
+            columns: new[] { "RequestId", "ExecutedAt" });
+
+        migrationBuilder.CreateIndex(
             name: "IX_Environments_ProjectId",
             table: "Environments",
             column: "ProjectId");
@@ -150,11 +155,23 @@ public partial class _20261125190252_CollectionsAndEnvironments : Migration
             name: "IX_SavedRequests_FolderId",
             table: "SavedRequests",
             column: "FolderId");
+
+        migrationBuilder.AddForeignKey(
+            name: "FK_RequestExecutions_SavedRequests_RequestId",
+            table: "RequestExecutions",
+            column: "RequestId",
+            principalTable: "SavedRequests",
+            principalColumn: "Id",
+            onDelete: ReferentialAction.SetNull);
     }
 
     /// <inheritdoc />
     protected override void Down(MigrationBuilder migrationBuilder)
     {
+        migrationBuilder.DropForeignKey(
+            name: "FK_RequestExecutions_SavedRequests_RequestId",
+            table: "RequestExecutions");
+
         migrationBuilder.DropTable(
             name: "Environments");
 
@@ -166,5 +183,9 @@ public partial class _20261125190252_CollectionsAndEnvironments : Migration
 
         migrationBuilder.DropTable(
             name: "RequestCollections");
+
+        migrationBuilder.DropIndex(
+            name: "IX_RequestExecutions_RequestId_ExecutedAt",
+            table: "RequestExecutions");
     }
 }

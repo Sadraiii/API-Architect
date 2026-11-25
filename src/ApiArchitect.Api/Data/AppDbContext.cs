@@ -1,6 +1,8 @@
 using ApiArchitect.Api.Features.Collections;
 using ApiArchitect.Api.Features.Environments;
+using ApiArchitect.Api.Features.Execution;
 using ApiArchitect.Api.Features.Projects;
+using ApiArchitect.Api.Features.Specifications;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,6 +19,9 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : Ident
     public DbSet<SavedRequest> SavedRequests => Set<SavedRequest>();
 
     public DbSet<ApiEnvironment> Environments => Set<ApiEnvironment>();
+
+    public DbSet<RequestExecution> RequestExecutions => Set<RequestExecution>();
+    public DbSet<ApiSpecification> ApiSpecifications => Set<ApiSpecification>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -87,6 +92,51 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : Ident
             environment.ComplexCollection(e => e.Variables, b => b.ToJson());
             environment.ComplexCollection(e => e.Headers, b => b.ToJson());
             environment.ComplexProperty(e => e.Auth, b => b.ToJson());
+        });
+
+        builder.Entity<RequestExecution>(execution =>
+        {
+            execution.Property(e => e.Method).HasMaxLength(10);
+            execution.Property(e => e.Url).HasMaxLength(ExecutionRules.UrlMaxLength);
+            execution.Property(e => e.RequestContentType).HasMaxLength(ExecutionRules.ContentTypeMaxLength);
+            execution.Property(e => e.AuthKind).HasConversion<string>().HasMaxLength(20);
+            execution.Property(e => e.AuthName).HasMaxLength(ExecutionRules.HeaderNameMaxLength);
+            execution.Property(e => e.ReasonPhrase).HasMaxLength(200);
+            execution.Property(e => e.ErrorCode).HasMaxLength(50);
+            execution.Property(e => e.ErrorMessage).HasMaxLength(500);
+            execution.ComplexCollection(e => e.RequestHeaders, headers => headers.ToJson());
+            execution.ComplexCollection(e => e.ResponseHeaders, headers => headers.ToJson());
+
+            execution.HasOne(e => e.Project)
+                .WithMany()
+                .HasForeignKey(e => e.ProjectId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // History outlives the saved request it came from.
+            execution.HasOne<SavedRequest>()
+                .WithMany()
+                .HasForeignKey(e => e.RequestId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // Serves the history list and the prune after each insert, and a saved request's own history.
+            execution.HasIndex(e => new { e.ProjectId, e.ExecutedAt });
+            execution.HasIndex(e => new { e.RequestId, e.ExecutedAt });
+        });
+
+        builder.Entity<ApiSpecification>(specification =>
+        {
+            specification.Property(s => s.Name).HasMaxLength(SpecificationRules.NameMaxLength);
+            specification.Property(s => s.Title).HasMaxLength(SpecificationRules.TitleMaxLength);
+            specification.Property(s => s.Version).HasMaxLength(SpecificationRules.VersionMaxLength);
+            specification.Property(s => s.OpenApiVersion).HasMaxLength(SpecificationRules.OpenApiVersionMaxLength);
+
+            specification.HasOne(s => s.Project)
+                .WithMany()
+                .HasForeignKey(s => s.ProjectId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Serves "a project's specifications, most recently updated first".
+            specification.HasIndex(s => new { s.ProjectId, s.UpdatedAt });
         });
     }
 }

@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "react-router";
 import { ApiError } from "../api/client";
 import { useDeleteProject, useProject, useUpdateProject } from "../api/projects";
 import { ProjectForm } from "../components/ProjectForm";
+import { ProjectSpecifications } from "../components/ProjectSpecifications";
 import { Button, ErrorMessage } from "../components/ui";
 
 export function ProjectPage() {
@@ -52,7 +53,15 @@ export function ProjectPage() {
               <h1 className="text-lg font-semibold">{p.name}</h1>
               {p.description && <p className="mt-1 whitespace-pre-line text-sm text-zinc-600 dark:text-zinc-400">{p.description}</p>}
             </div>
-            <Button variant="secondary" onClick={() => setEditing(true)}>Edit</Button>
+            <div className="flex shrink-0 gap-2">
+              <Link
+                to={`/projects/${p.id}/request`}
+                className="inline-flex h-9 items-center rounded-md bg-indigo-600 px-3.5 text-sm font-medium text-white hover:bg-indigo-500"
+              >
+                Send a request
+              </Link>
+              <Button variant="secondary" onClick={() => setEditing(true)}>Edit</Button>
+            </div>
           </header>
 
           <dl className="mt-6 grid grid-cols-[max-content_1fr] gap-x-6 gap-y-2 text-sm">
@@ -72,6 +81,8 @@ export function ProjectPage() {
               Environments
             </Link>
           </nav>
+
+          <ProjectSpecifications projectId={p.id} />
 
           <section className="mt-10 rounded-lg border border-red-200 p-4 dark:border-red-900">
             <h2 className="text-sm font-semibold">Delete project</h2>

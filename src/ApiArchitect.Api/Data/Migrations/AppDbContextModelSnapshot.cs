@@ -17,7 +17,7 @@ partial class AppDbContextModelSnapshot : ModelSnapshot
     // If you encounter a merge conflict in the line below, it means you need to
     // discard one of the migration branches and recreate its migrations on top of
     // the other branch. See https://aka.ms/efcore-docs-migrations-conflicts for more info.
-    public override string LastMigrationId => "20261125190252_CollectionsAndEnvironments";
+    public override string LastMigrationId => "20261125192330_CollectionsAndEnvironments";
 
     protected override void BuildModel(ModelBuilder modelBuilder)
     {
@@ -342,6 +342,119 @@ partial class AppDbContextModelSnapshot : ModelSnapshot
                 b.ToTable("Environments");
             });
 
+        modelBuilder.Entity("ApiArchitect.Api.Features.Execution.RequestExecution", b =>
+            {
+                b.Property<Guid>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("uuid");
+
+                b.Property<string>("AuthKind")
+                    .HasMaxLength(20)
+                    .HasColumnType("character varying(20)");
+
+                b.Property<string>("AuthName")
+                    .HasMaxLength(256)
+                    .HasColumnType("character varying(256)");
+
+                b.Property<long>("DurationMs")
+                    .HasColumnType("bigint");
+
+                b.Property<string>("ErrorCode")
+                    .HasMaxLength(50)
+                    .HasColumnType("character varying(50)");
+
+                b.Property<string>("ErrorMessage")
+                    .HasMaxLength(500)
+                    .HasColumnType("character varying(500)");
+
+                b.Property<DateTimeOffset>("ExecutedAt")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("Method")
+                    .IsRequired()
+                    .HasMaxLength(10)
+                    .HasColumnType("character varying(10)");
+
+                b.Property<Guid>("ProjectId")
+                    .HasColumnType("uuid");
+
+                b.Property<string>("ReasonPhrase")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<string>("RequestBody")
+                    .HasColumnType("text");
+
+                b.Property<bool>("RequestBodyTruncated")
+                    .HasColumnType("boolean");
+
+                b.Property<string>("RequestContentType")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<Guid?>("RequestId")
+                    .HasColumnType("uuid");
+
+                b.Property<string>("ResponseBody")
+                    .IsRequired()
+                    .HasColumnType("text");
+
+                b.Property<bool>("ResponseBodyIsBinary")
+                    .HasColumnType("boolean");
+
+                b.Property<bool>("ResponseBodyTruncated")
+                    .HasColumnType("boolean");
+
+                b.Property<long>("ResponseSizeBytes")
+                    .HasColumnType("bigint");
+
+                b.Property<int?>("StatusCode")
+                    .HasColumnType("integer");
+
+                b.Property<string>("Url")
+                    .IsRequired()
+                    .HasMaxLength(2048)
+                    .HasColumnType("character varying(2048)");
+
+                b.ComplexCollection(typeof(List<Dictionary<string, object>>), "RequestHeaders", "ApiArchitect.Api.Features.Execution.RequestExecution.RequestHeaders#HeaderPair", b1 =>
+                    {
+                        b1.IsRequired();
+
+                        b1.Property<string>("Name")
+                            .IsRequired();
+
+                        b1.Property<string>("Value")
+                            .IsRequired();
+
+                        b1
+                            .ToJson("RequestHeaders")
+                            .HasColumnType("jsonb");
+                    });
+
+                b.ComplexCollection(typeof(List<Dictionary<string, object>>), "ResponseHeaders", "ApiArchitect.Api.Features.Execution.RequestExecution.ResponseHeaders#HeaderPair", b1 =>
+                    {
+                        b1.IsRequired();
+
+                        b1.Property<string>("Name")
+                            .IsRequired();
+
+                        b1.Property<string>("Value")
+                            .IsRequired();
+
+                        b1
+                            .ToJson("ResponseHeaders")
+                            .HasColumnType("jsonb");
+                    });
+
+                b.HasKey("Id");
+
+                b.HasIndex("ProjectId", "ExecutedAt");
+
+                b.HasIndex("RequestId", "ExecutedAt");
+
+                b.ToTable("RequestExecutions");
+            });
+
         modelBuilder.Entity("ApiArchitect.Api.Features.Projects.Project", b =>
             {
                 b.Property<Guid>("Id")
@@ -376,6 +489,52 @@ partial class AppDbContextModelSnapshot : ModelSnapshot
                 b.HasIndex("OwnerId", "UpdatedAt");
 
                 b.ToTable("Projects");
+            });
+
+        modelBuilder.Entity("ApiArchitect.Api.Features.Specifications.ApiSpecification", b =>
+            {
+                b.Property<Guid>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("uuid");
+
+                b.Property<string>("Content")
+                    .IsRequired()
+                    .HasColumnType("text");
+
+                b.Property<DateTimeOffset>("CreatedAt")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("Name")
+                    .IsRequired()
+                    .HasMaxLength(100)
+                    .HasColumnType("character varying(100)");
+
+                b.Property<string>("OpenApiVersion")
+                    .IsRequired()
+                    .HasMaxLength(20)
+                    .HasColumnType("character varying(20)");
+
+                b.Property<Guid>("ProjectId")
+                    .HasColumnType("uuid");
+
+                b.Property<string>("Title")
+                    .IsRequired()
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<DateTimeOffset>("UpdatedAt")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("Version")
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .HasColumnType("character varying(50)");
+
+                b.HasKey("Id");
+
+                b.HasIndex("ProjectId", "UpdatedAt");
+
+                b.ToTable("ApiSpecifications");
             });
 
         modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -564,6 +723,22 @@ partial class AppDbContextModelSnapshot : ModelSnapshot
                 b.Navigation("Project");
             });
 
+        modelBuilder.Entity("ApiArchitect.Api.Features.Execution.RequestExecution", b =>
+            {
+                b.HasOne("ApiArchitect.Api.Features.Projects.Project", "Project")
+                    .WithMany()
+                    .HasForeignKey("ProjectId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
+
+                b.HasOne("ApiArchitect.Api.Features.Collections.SavedRequest", null)
+                    .WithMany()
+                    .HasForeignKey("RequestId")
+                    .OnDelete(DeleteBehavior.SetNull);
+
+                b.Navigation("Project");
+            });
+
         modelBuilder.Entity("ApiArchitect.Api.Features.Projects.Project", b =>
             {
                 b.HasOne("ApiArchitect.Api.Data.AppUser", null)
@@ -571,6 +746,17 @@ partial class AppDbContextModelSnapshot : ModelSnapshot
                     .HasForeignKey("OwnerId")
                     .OnDelete(DeleteBehavior.Cascade)
                     .IsRequired();
+            });
+
+        modelBuilder.Entity("ApiArchitect.Api.Features.Specifications.ApiSpecification", b =>
+            {
+                b.HasOne("ApiArchitect.Api.Features.Projects.Project", "Project")
+                    .WithMany()
+                    .HasForeignKey("ProjectId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
+
+                b.Navigation("Project");
             });
 
         modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

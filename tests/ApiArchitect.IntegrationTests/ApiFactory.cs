@@ -11,7 +11,7 @@ namespace ApiArchitect.IntegrationTests;
 /// Runs the real app against a real PostgreSQL database, created fresh for each test run and dropped after.
 /// Set <c>TEST_DATABASE</c> to point at a server; it defaults to a local one with the dev credentials.
 /// </summary>
-public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
+public class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
     private readonly string _connectionString =
         (Environment.GetEnvironmentVariable("TEST_DATABASE")
@@ -25,9 +25,17 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
         // Every test signs in from the same address, so the per-IP auth limit would trip.
         builder.UseSetting("RateLimiting:AuthPermitsPerMinute", "10000");
         builder.UseSetting("Logging:LogLevel:Default", "Warning");
+        // The strict mode a shared server would need; LoopbackApiFactory covers the local default.
+        builder.UseSetting("Execution:AllowPrivateNetworks", "false");
+        ConfigureSettings(builder);
     }
 
-    public async ValueTask InitializeAsync()
+    /// <summary>Lets a derived factory change settings for its own collection of tests.</summary>
+    protected virtual void ConfigureSettings(IWebHostBuilder builder)
+    {
+    }
+
+    public virtual async ValueTask InitializeAsync()
     {
         await using var scope = Services.CreateAsyncScope();
         await scope.ServiceProvider.GetRequiredService<AppDbContext>().Database.MigrateAsync();

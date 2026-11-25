@@ -13,8 +13,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ApiArchitect.Api.Data.Migrations;
 
 [DbContext(typeof(AppDbContext))]
-[Migration("20261125190252_CollectionsAndEnvironments")]
-partial class _20261125190252_CollectionsAndEnvironments
+[Migration("20261125192221_AddRequestExecutions")]
+partial class _20261125192221_AddRequestExecutions
 {
     /// <inheritdoc />
     protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -93,217 +93,83 @@ partial class _20261125190252_CollectionsAndEnvironments
                 b.ToTable("AspNetUsers");
             });
 
-        modelBuilder.Entity("ApiArchitect.Api.Features.Collections.RequestCollection", b =>
+        modelBuilder.Entity("ApiArchitect.Api.Features.Execution.RequestExecution", b =>
             {
                 b.Property<Guid>("Id")
                     .ValueGeneratedOnAdd()
                     .HasColumnType("uuid");
 
-                b.Property<DateTimeOffset>("CreatedAt")
+                b.Property<string>("AuthKind")
+                    .HasMaxLength(20)
+                    .HasColumnType("character varying(20)");
+
+                b.Property<string>("AuthName")
+                    .HasMaxLength(256)
+                    .HasColumnType("character varying(256)");
+
+                b.Property<long>("DurationMs")
+                    .HasColumnType("bigint");
+
+                b.Property<string>("ErrorCode")
+                    .HasMaxLength(50)
+                    .HasColumnType("character varying(50)");
+
+                b.Property<string>("ErrorMessage")
+                    .HasMaxLength(500)
+                    .HasColumnType("character varying(500)");
+
+                b.Property<DateTimeOffset>("ExecutedAt")
                     .HasColumnType("timestamp with time zone");
-
-                b.Property<string>("Description")
-                    .HasMaxLength(2000)
-                    .HasColumnType("character varying(2000)");
-
-                b.Property<string>("Name")
-                    .IsRequired()
-                    .HasMaxLength(200)
-                    .HasColumnType("character varying(200)");
-
-                b.Property<Guid>("ProjectId")
-                    .HasColumnType("uuid");
-
-                b.Property<DateTimeOffset>("UpdatedAt")
-                    .HasColumnType("timestamp with time zone");
-
-                b.HasKey("Id");
-
-                b.HasIndex("ProjectId");
-
-                b.ToTable("RequestCollections");
-            });
-
-        modelBuilder.Entity("ApiArchitect.Api.Features.Collections.RequestFolder", b =>
-            {
-                b.Property<Guid>("Id")
-                    .ValueGeneratedOnAdd()
-                    .HasColumnType("uuid");
-
-                b.Property<Guid>("CollectionId")
-                    .HasColumnType("uuid");
-
-                b.Property<DateTimeOffset>("CreatedAt")
-                    .HasColumnType("timestamp with time zone");
-
-                b.Property<string>("Name")
-                    .IsRequired()
-                    .HasMaxLength(200)
-                    .HasColumnType("character varying(200)");
-
-                b.Property<Guid?>("ParentFolderId")
-                    .HasColumnType("uuid");
-
-                b.Property<DateTimeOffset>("UpdatedAt")
-                    .HasColumnType("timestamp with time zone");
-
-                b.HasKey("Id");
-
-                b.HasIndex("CollectionId");
-
-                b.HasIndex("ParentFolderId");
-
-                b.ToTable("RequestFolders");
-            });
-
-        modelBuilder.Entity("ApiArchitect.Api.Features.Collections.SavedRequest", b =>
-            {
-                b.Property<Guid>("Id")
-                    .ValueGeneratedOnAdd()
-                    .HasColumnType("uuid");
-
-                b.Property<string>("Body")
-                    .HasColumnType("text");
-
-                b.Property<Guid>("CollectionId")
-                    .HasColumnType("uuid");
-
-                b.Property<string>("ContentType")
-                    .HasMaxLength(200)
-                    .HasColumnType("character varying(200)");
-
-                b.Property<DateTimeOffset>("CreatedAt")
-                    .HasColumnType("timestamp with time zone");
-
-                b.Property<Guid?>("FolderId")
-                    .HasColumnType("uuid");
 
                 b.Property<string>("Method")
                     .IsRequired()
                     .HasMaxLength(10)
                     .HasColumnType("character varying(10)");
 
-                b.Property<string>("Name")
-                    .IsRequired()
-                    .HasMaxLength(200)
-                    .HasColumnType("character varying(200)");
-
-                b.Property<DateTimeOffset>("UpdatedAt")
-                    .HasColumnType("timestamp with time zone");
-
-                b.Property<string>("Url")
-                    .IsRequired()
-                    .HasMaxLength(8000)
-                    .HasColumnType("character varying(8000)");
-
-                b.ComplexProperty(typeof(Dictionary<string, object>), "Auth", "ApiArchitect.Api.Features.Collections.SavedRequest.Auth#AuthSettings", b1 =>
-                    {
-                        b1.IsRequired();
-
-                        b1.Property<string>("KeyLocation");
-
-                        b1.Property<string>("KeyName");
-
-                        b1.Property<string>("Type")
-                            .IsRequired();
-
-                        b1.Property<string>("Value");
-
-                        b1
-                            .ToJson("Auth")
-                            .HasColumnType("jsonb");
-                    });
-
-                b.ComplexCollection(typeof(List<Dictionary<string, object>>), "Headers", "ApiArchitect.Api.Features.Collections.SavedRequest.Headers#KeyValueEntry", b1 =>
-                    {
-                        b1.IsRequired();
-
-                        b1.Property<bool>("Enabled");
-
-                        b1.Property<string>("Name")
-                            .IsRequired();
-
-                        b1.Property<string>("Value")
-                            .IsRequired();
-
-                        b1
-                            .ToJson("Headers")
-                            .HasColumnType("jsonb");
-                    });
-
-                b.ComplexCollection(typeof(List<Dictionary<string, object>>), "QueryParameters", "ApiArchitect.Api.Features.Collections.SavedRequest.QueryParameters#KeyValueEntry", b1 =>
-                    {
-                        b1.IsRequired();
-
-                        b1.Property<bool>("Enabled");
-
-                        b1.Property<string>("Name")
-                            .IsRequired();
-
-                        b1.Property<string>("Value")
-                            .IsRequired();
-
-                        b1
-                            .ToJson("QueryParameters")
-                            .HasColumnType("jsonb");
-                    });
-
-                b.HasKey("Id");
-
-                b.HasIndex("CollectionId");
-
-                b.HasIndex("FolderId");
-
-                b.ToTable("SavedRequests");
-            });
-
-        modelBuilder.Entity("ApiArchitect.Api.Features.Environments.ApiEnvironment", b =>
-            {
-                b.Property<Guid>("Id")
-                    .ValueGeneratedOnAdd()
-                    .HasColumnType("uuid");
-
-                b.Property<string>("BaseUrl")
-                    .HasMaxLength(2000)
-                    .HasColumnType("character varying(2000)");
-
-                b.Property<DateTimeOffset>("CreatedAt")
-                    .HasColumnType("timestamp with time zone");
-
-                b.Property<string>("Name")
-                    .IsRequired()
-                    .HasMaxLength(100)
-                    .HasColumnType("character varying(100)");
-
                 b.Property<Guid>("ProjectId")
                     .HasColumnType("uuid");
 
-                b.Property<DateTimeOffset>("UpdatedAt")
-                    .HasColumnType("timestamp with time zone");
+                b.Property<string>("ReasonPhrase")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
 
-                b.ComplexProperty(typeof(Dictionary<string, object>), "Auth", "ApiArchitect.Api.Features.Environments.ApiEnvironment.Auth#EnvironmentAuth", b1 =>
+                b.Property<string>("RequestBody")
+                    .HasColumnType("text");
+
+                b.Property<bool>("RequestBodyTruncated")
+                    .HasColumnType("boolean");
+
+                b.Property<string>("RequestContentType")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<Guid?>("RequestId")
+                    .HasColumnType("uuid");
+
+                b.Property<string>("ResponseBody")
+                    .IsRequired()
+                    .HasColumnType("text");
+
+                b.Property<bool>("ResponseBodyIsBinary")
+                    .HasColumnType("boolean");
+
+                b.Property<bool>("ResponseBodyTruncated")
+                    .HasColumnType("boolean");
+
+                b.Property<long>("ResponseSizeBytes")
+                    .HasColumnType("bigint");
+
+                b.Property<int?>("StatusCode")
+                    .HasColumnType("integer");
+
+                b.Property<string>("Url")
+                    .IsRequired()
+                    .HasMaxLength(2048)
+                    .HasColumnType("character varying(2048)");
+
+                b.ComplexCollection(typeof(List<Dictionary<string, object>>), "RequestHeaders", "ApiArchitect.Api.Features.Execution.RequestExecution.RequestHeaders#HeaderPair", b1 =>
                     {
                         b1.IsRequired();
-
-                        b1.Property<string>("KeyLocation");
-
-                        b1.Property<string>("KeyName");
-
-                        b1.Property<string>("ProtectedValue");
-
-                        b1.Property<string>("Type")
-                            .IsRequired();
-
-                        b1
-                            .ToJson("Auth")
-                            .HasColumnType("jsonb");
-                    });
-
-                b.ComplexCollection(typeof(List<Dictionary<string, object>>), "Headers", "ApiArchitect.Api.Features.Environments.ApiEnvironment.Headers#KeyValueEntry", b1 =>
-                    {
-                        b1.IsRequired();
-
-                        b1.Property<bool>("Enabled");
 
                         b1.Property<string>("Name")
                             .IsRequired();
@@ -312,15 +178,13 @@ partial class _20261125190252_CollectionsAndEnvironments
                             .IsRequired();
 
                         b1
-                            .ToJson("Headers")
+                            .ToJson("RequestHeaders")
                             .HasColumnType("jsonb");
                     });
 
-                b.ComplexCollection(typeof(List<Dictionary<string, object>>), "Variables", "ApiArchitect.Api.Features.Environments.ApiEnvironment.Variables#EnvironmentVariable", b1 =>
+                b.ComplexCollection(typeof(List<Dictionary<string, object>>), "ResponseHeaders", "ApiArchitect.Api.Features.Execution.RequestExecution.ResponseHeaders#HeaderPair", b1 =>
                     {
                         b1.IsRequired();
-
-                        b1.Property<bool>("IsSecret");
 
                         b1.Property<string>("Name")
                             .IsRequired();
@@ -329,15 +193,15 @@ partial class _20261125190252_CollectionsAndEnvironments
                             .IsRequired();
 
                         b1
-                            .ToJson("Variables")
+                            .ToJson("ResponseHeaders")
                             .HasColumnType("jsonb");
                     });
 
                 b.HasKey("Id");
 
-                b.HasIndex("ProjectId");
+                b.HasIndex("ProjectId", "ExecutedAt");
 
-                b.ToTable("Environments");
+                b.ToTable("RequestExecutions");
             });
 
         modelBuilder.Entity("ApiArchitect.Api.Features.Projects.Project", b =>
@@ -374,6 +238,52 @@ partial class _20261125190252_CollectionsAndEnvironments
                 b.HasIndex("OwnerId", "UpdatedAt");
 
                 b.ToTable("Projects");
+            });
+
+        modelBuilder.Entity("ApiArchitect.Api.Features.Specifications.ApiSpecification", b =>
+            {
+                b.Property<Guid>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("uuid");
+
+                b.Property<string>("Content")
+                    .IsRequired()
+                    .HasColumnType("text");
+
+                b.Property<DateTimeOffset>("CreatedAt")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("Name")
+                    .IsRequired()
+                    .HasMaxLength(100)
+                    .HasColumnType("character varying(100)");
+
+                b.Property<string>("OpenApiVersion")
+                    .IsRequired()
+                    .HasMaxLength(20)
+                    .HasColumnType("character varying(20)");
+
+                b.Property<Guid>("ProjectId")
+                    .HasColumnType("uuid");
+
+                b.Property<string>("Title")
+                    .IsRequired()
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
+
+                b.Property<DateTimeOffset>("UpdatedAt")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("Version")
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .HasColumnType("character varying(50)");
+
+                b.HasKey("Id");
+
+                b.HasIndex("ProjectId", "UpdatedAt");
+
+                b.ToTable("ApiSpecifications");
             });
 
         modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -508,50 +418,7 @@ partial class _20261125190252_CollectionsAndEnvironments
                 b.ToTable("AspNetUserTokens");
             });
 
-        modelBuilder.Entity("ApiArchitect.Api.Features.Collections.RequestCollection", b =>
-            {
-                b.HasOne("ApiArchitect.Api.Features.Projects.Project", "Project")
-                    .WithMany()
-                    .HasForeignKey("ProjectId")
-                    .OnDelete(DeleteBehavior.Cascade)
-                    .IsRequired();
-
-                b.Navigation("Project");
-            });
-
-        modelBuilder.Entity("ApiArchitect.Api.Features.Collections.RequestFolder", b =>
-            {
-                b.HasOne("ApiArchitect.Api.Features.Collections.RequestCollection", "Collection")
-                    .WithMany()
-                    .HasForeignKey("CollectionId")
-                    .OnDelete(DeleteBehavior.Cascade)
-                    .IsRequired();
-
-                b.HasOne("ApiArchitect.Api.Features.Collections.RequestFolder", null)
-                    .WithMany()
-                    .HasForeignKey("ParentFolderId")
-                    .OnDelete(DeleteBehavior.Cascade);
-
-                b.Navigation("Collection");
-            });
-
-        modelBuilder.Entity("ApiArchitect.Api.Features.Collections.SavedRequest", b =>
-            {
-                b.HasOne("ApiArchitect.Api.Features.Collections.RequestCollection", "Collection")
-                    .WithMany()
-                    .HasForeignKey("CollectionId")
-                    .OnDelete(DeleteBehavior.Cascade)
-                    .IsRequired();
-
-                b.HasOne("ApiArchitect.Api.Features.Collections.RequestFolder", null)
-                    .WithMany()
-                    .HasForeignKey("FolderId")
-                    .OnDelete(DeleteBehavior.Cascade);
-
-                b.Navigation("Collection");
-            });
-
-        modelBuilder.Entity("ApiArchitect.Api.Features.Environments.ApiEnvironment", b =>
+        modelBuilder.Entity("ApiArchitect.Api.Features.Execution.RequestExecution", b =>
             {
                 b.HasOne("ApiArchitect.Api.Features.Projects.Project", "Project")
                     .WithMany()
@@ -569,6 +436,17 @@ partial class _20261125190252_CollectionsAndEnvironments
                     .HasForeignKey("OwnerId")
                     .OnDelete(DeleteBehavior.Cascade)
                     .IsRequired();
+            });
+
+        modelBuilder.Entity("ApiArchitect.Api.Features.Specifications.ApiSpecification", b =>
+            {
+                b.HasOne("ApiArchitect.Api.Features.Projects.Project", "Project")
+                    .WithMany()
+                    .HasForeignKey("ProjectId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
+
+                b.Navigation("Project");
             });
 
         modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

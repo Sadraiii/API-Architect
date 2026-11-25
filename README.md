@@ -41,7 +41,8 @@ In `src/ApiArchitect.Api/appsettings*.json`, or override with `dotnet user-secre
 | `Execution:MaxResponseBytes` | 5 MB | Larger responses are cut off |
 | `Execution:HistoryLimitPerProject` | `100` | Saved requests in history |
 
-The rest are in `ExecutionOptions.cs` and `appsettings.json`.
+The rest are in `ExecutionOptions.cs` and `appsettings.json`. Cloud metadata addresses such as 169.254.169.254 are
+always blocked, and redirects are shown, not followed.
 
 Environment secrets are encrypted with ASP.NET Core Data Protection. Its keys are kept in your user profile
 (`~/.aspnet/DataProtection-Keys`, or `%LOCALAPPDATA%\ASP.NET\DataProtection-Keys` on Windows). Delete them and saved
@@ -78,5 +79,6 @@ New features follow `Features/Projects`:
 
 - No email confirmation or password reset.
 - Spec import is JSON only (OpenAPI 3.0–3.2).
+- "Try it" in the API reference is hidden until it's wired to the request runner.
 - Not set up for public hosting.
 - Postman import skips scripts, form-data bodies and collection variables (it lists what it skipped).
