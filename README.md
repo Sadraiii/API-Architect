@@ -4,8 +4,8 @@ A personal workspace for C# and .NET developers to import OpenAPI specifications
 and send and save HTTP requests against their APIs. It runs on your own machine, so it can call APIs on your
 localhost and local network.
 
-**Status: Milestone 1 (foundation).** Accounts, sign-in and projects work. Specifications, the API reference,
-the request runner, collections and environments come in the next milestones.
+**Status:** accounts, sign-in, projects and the request runner work. Specifications, the API reference,
+collections and environments come in the next milestones.
 
 ## Stack
 
@@ -127,9 +127,55 @@ Follow `Features/Projects` as the reference implementation.
 - Registering with an email that's already taken says so. That's normal for sign-up forms but does reveal that
   the account exists; email confirmation would remove it.
 
+## Sending requests (Features/Execution)
+
+Each project has a request page (`/projects/{id}/request`) that sends GET, POST, PUT, PATCH and DELETE requests
+from the server (the app running on your machine) and shows status, headers, body (JSON pretty-printed and highlighted), timing and the request
+that was sent. Endpoints:
+
+| Endpoint | Purpose |
+| --- | --- |
+| `POST /api/projects/{projectId}/execute` | Send an ad-hoc request and record it |
+| `GET /api/projects/{projectId}/executions?requestId=` | History, newest first |
+| `GET /api/executions/{id}` | One stored execution |
+| `DELETE /api/projects/{projectId}/executions` | Clear history |
+
+```bash
+curl -b cookies.txt -X POST https://localhost:7149/api/projects/$PROJECT_ID/execute \
+  -H "Content-Type: application/json" \
+  -d '{"method":"GET","url":"https://api.github.com/zen","auth":{"kind":"Bearer","value":"<token>"}}'
+```
+
+Invalid input is a 400 `ValidationProblem`. A failure of the *target* (blocked address, DNS, refused connection,
+TLS, timeout) is still a 200, with `statusCode: null` and `error: { code, message }`, and it is recorded.
+
+Other features call the service directly: `RequestExecutor.ExecuteAsync(OutboundRequest, ct)` then
+`ExecutionHistory.RecordAsync(projectId, requestId, request, result, ct)`. Pass credentials as `RequestAuth`, and
+any other secret you substituted into the URL, headers or body as `OutboundRequest.SecretValues`, so history masks them.
+
+**Safety rules, and why**
+
+API Architect runs locally for one person, so by default requests may reach `localhost` and your LAN: testing
+your own APIs is the main use. The rest of the guard stays on.
+
+- **Address policy at connect time.** `OutboundAddressPolicy` runs in `SocketsHttpHandler.ConnectCallback`: it
+  resolves the host, checks every address, then connects to the checked address, so DNS rebinding can't swap the
+  answer after the check. Cloud metadata endpoints (169.254.169.254, fd00:ec2::254 and friends) and
+  unspecified/multicast addresses are always refused.
+- **`Execution:AllowPrivateNetworks`** (default `true`). Set it to `false` if the app is ever reachable by anyone
+  else: otherwise anyone who can sign in can make it call anything on your network. With it off, loopback,
+  RFC 1918, link-local, CGNAT and IPv6 equivalents are refused too, except CIDR ranges in `Execution:AllowedNetworks`.
+- **No redirects followed** (a 3xx comes back with its `Location`), **no proxy, no cookies** kept between requests.
+- **Limits** (section `Execution`): 30 s total timeout, 10 s connect, 5 MB response read (the rest is dropped and the
+  body marked truncated), 1 MB request body, 60 executions per user per minute.
+- **History**: the newest 100 per project; bodies stored up to 64 KB. Auth values and well-known credential headers
+  (`Authorization`, `Cookie`, `X-Api-Key`, ...) are masked, as is every occurrence of a secret value. Request bodies
+  are otherwise stored as written.
+- **Logging** records method, host, status, duration and error code only, never the path, query, headers or bodies.
+
 ## Not done yet
 
 - No email confirmation or password reset. For a single-user local install that's fine; you can reset a password
   by deleting the user row and registering again.
 - The app is meant for your machine only. Putting it on the internet would need persisted Data Protection keys,
-  forwarded-header handling for the rate limiter, and an outbound request guard that blocks private networks.
+  forwarded-header handling for the rate limiter, and `Execution:AllowPrivateNetworks` set to `false`.
