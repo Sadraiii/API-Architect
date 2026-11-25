@@ -13,7 +13,7 @@ import {
 } from "../api/collections";
 import { previewUrl, useActiveEnvironmentId, useEnvironments } from "../api/environments";
 import { folderPaths } from "./CollectionTree";
-import { KeyValueEditor } from "./KeyValueEditor";
+import { KeyValueTable } from "./KeyValueTable";
 import { Button, ErrorMessage } from "./ui";
 
 const tabs = ["Params", "Headers", "Body", "Auth"] as const;
@@ -146,10 +146,10 @@ export function RequestEditor({ projectId, requestId, collection, onDuplicated, 
 
       <div role="tabpanel">
         {tab === "Params" && (
-          <KeyValueEditor label="Query parameters" rows={draft.queryParameters} onChange={(queryParameters) => set({ queryParameters })} />
+          <KeyValueTable label="Query parameters" rows={draft.queryParameters} onChange={(queryParameters) => set({ queryParameters })} />
         )}
         {tab === "Headers" && (
-          <KeyValueEditor label="Headers" rows={draft.headers} onChange={(headers) => set({ headers })} namePlaceholder="Header name" />
+          <KeyValueTable label="Headers" rows={draft.headers} onChange={(headers) => set({ headers })} namePlaceholder="Header name" />
         )}
         {tab === "Body" && <BodyEditor draft={draft} set={set} />}
         {tab === "Auth" && <AuthEditor auth={draft.auth} setAuth={setAuth} />}

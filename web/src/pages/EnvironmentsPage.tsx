@@ -10,9 +10,11 @@ import {
   type EnvironmentInput,
 } from "../api/environments";
 import { useProject } from "../api/projects";
-import { KeyValueEditor } from "../components/KeyValueEditor";
+import { KeyValueTable } from "../components/KeyValueTable";
 import { Button, ErrorMessage, TextField } from "../components/ui";
 
+const selectStyles =
+  "rounded border border-zinc-300 bg-white px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-900";
 const cellStyles =
   "w-full min-w-0 rounded border border-zinc-300 bg-white px-2 py-1 font-mono text-xs focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 dark:border-zinc-700 dark:bg-zinc-900";
 
@@ -205,7 +207,7 @@ function EnvironmentForm({ projectId, environment, isActive, onActivate, onSaved
 
       <fieldset className="space-y-2">
         <legend className="text-sm font-medium">Headers sent with every request</legend>
-        <KeyValueEditor label="Headers" rows={headers} onChange={setHeaders} namePlaceholder="Header name" />
+        <KeyValueTable label="Headers" rows={headers} onChange={setHeaders} namePlaceholder="Header name" />
       </fieldset>
 
       <fieldset className="space-y-2">
@@ -213,7 +215,7 @@ function EnvironmentForm({ projectId, environment, isActive, onActivate, onSaved
         <div className="flex flex-wrap gap-2">
           <select
             aria-label="Auth type"
-            className={`${cellStyles} w-auto text-sm`}
+            className={selectStyles}
             value={authType}
             onChange={(e) => setAuthType(e.target.value as typeof authType)}
           >
@@ -223,8 +225,8 @@ function EnvironmentForm({ projectId, environment, isActive, onActivate, onSaved
           </select>
           {authType === "apiKey" && (
             <>
-              <input aria-label="API key name" className={`${cellStyles} w-48`} placeholder="X-Api-Key" value={keyName} maxLength={500} onChange={(e) => setKeyName(e.target.value)} />
-              <select aria-label="Send API key in" className={`${cellStyles} w-auto`} value={keyLocation} onChange={(e) => setKeyLocation(e.target.value as KeyLocation)}>
+              <input aria-label="API key name" className={`${cellStyles} max-w-48`} placeholder="X-Api-Key" value={keyName} maxLength={500} onChange={(e) => setKeyName(e.target.value)} />
+              <select aria-label="Send API key in" className={selectStyles} value={keyLocation} onChange={(e) => setKeyLocation(e.target.value as KeyLocation)}>
                 <option value="header">Header</option>
                 <option value="query">Query parameter</option>
               </select>

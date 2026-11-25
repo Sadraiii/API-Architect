@@ -113,6 +113,25 @@ Follow `Features/Projects` as the reference implementation.
   `<ErrorMessage error={...} />`, which lists validation messages.
 - Only add a sidebar item once its page works. No placeholder screens.
 
+## Collections and environments
+
+- **Collections** hold saved requests, optionally in nested folders (up to 10 levels). Requests keep the order they
+  were created or imported in. A request can be duplicated, edited and moved between folders.
+- **Environments** (Local, Staging, ...) hold a base URL, variables, headers sent with every request, and default
+  auth for requests set to "Use the environment's auth". The active environment is picked in the UI and remembered
+  per project in the browser.
+- **Variables** are written `{{name}}` in a request's URL, query parameters, headers, body and auth. `{{baseUrl}}`
+  is the environment's base URL, and a URL that's just a path is appended to it. Substitution is one pass, and an
+  unknown variable is an error rather than being sent as literal text. See `RequestResolver`.
+- **Secrets**: a variable marked secret, and the environment's auth token or key, are encrypted with ASP.NET Core
+  Data Protection (one protector purpose per project) and never returned by the API. To keep a stored secret, send
+  its value as `null`. Auth values typed on a single request are plain text, so the UI points people at
+  `{{secretVariable}}` instead.
+- **Postman**: `POST /api/projects/{projectId}/collections/import` takes a Postman v2.0 or v2.1 collection (up to
+  10 MB, 2,000 requests). Raw, URL-encoded and GraphQL bodies, bearer and API key auth, headers, query parameters and
+  folders carry over; scripts, form-data bodies, other auth types and collection variables are reported back as
+  warnings. `GET /api/collections/{id}/export` downloads a v2.1 file.
+
 ## Security notes
 
 - Passwords: Identity hashing, minimum 12 characters, lockout after 5 failures for 15 minutes.
@@ -126,8 +145,10 @@ Follow `Features/Projects` as the reference implementation.
 
 - **Azure deployment.** Not set up. Hosting needs an App Service (or Container Apps) plus Azure Database for
   PostgreSQL, the connection string in Key Vault or app settings, and migrations run as a deploy step.
-- **Data Protection keys.** The auth cookie is encrypted with them. With more than one instance, or after a
-  redeploy, they must be persisted (for example Azure Blob Storage + Key Vault) or everyone is signed out.
+- **Data Protection keys.** The auth cookie and environment secrets are encrypted with them. With more than one
+  instance, or after a redeploy, they must be persisted (for example Azure Blob Storage, protected with Key Vault).
+  Losing them signs everyone out and makes every stored environment secret unreadable; the app then asks people
+  to enter those secrets again.
 - **Forwarded headers.** Behind Azure's front end, the rate limiter needs `ForwardedHeaders` configured to see
   the real client IP.
 - **Email.** No confirmation or password reset yet; both need an email sender.

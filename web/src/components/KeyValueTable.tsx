@@ -11,7 +11,7 @@ const cellStyles =
   "w-full min-w-0 rounded border border-zinc-300 bg-white px-2 py-1 font-mono text-xs focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 dark:border-zinc-700 dark:bg-zinc-900";
 
 /** An editable list of headers or query parameters. Unticked rows are kept but not sent. */
-export function KeyValueEditor({ label, rows, onChange, namePlaceholder = "Name" }: Props) {
+export function KeyValueTable({ label, rows, onChange, namePlaceholder = "Name" }: Props) {
   const update = (index: number, patch: Partial<KeyValue>) =>
     onChange(rows.map((row, i) => (i === index ? { ...row, ...patch } : row)));
 

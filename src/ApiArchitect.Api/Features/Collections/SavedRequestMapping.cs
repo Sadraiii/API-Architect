@@ -23,7 +23,7 @@ internal static class SavedRequestMapping
     {
         request.Name = input.Name.Trim();
         request.Method = input.Method;
-        request.Url = input.Url.Trim();
+        request.Url = input.Url?.Trim() ?? "";
         request.Headers = ToEntries(input.Headers);
         request.QueryParameters = ToEntries(input.QueryParameters);
         request.Body = string.IsNullOrEmpty(input.Body) ? null : input.Body;

@@ -36,7 +36,7 @@ const methodColors: Record<string, string> = {
 export function MethodBadge({ method }: { method: string }) {
   return (
     <span className={`w-12 shrink-0 font-mono text-[10px] font-semibold ${methodColors[method] ?? "text-zinc-500"}`}>
-      {method === "DELETE" ? "DEL" : method === "OPTIONS" ? "OPT" : method}
+      {method === "DELETE" ? "DEL" : method}
     </span>
   );
 }

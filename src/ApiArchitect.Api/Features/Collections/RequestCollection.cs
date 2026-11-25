@@ -140,5 +140,6 @@ public static class CollectionRules
     /// <summary>Folder nesting limit, so folder trees stay navigable and cycle checks stay cheap.</summary>
     public const int MaxFolderDepth = 10;
 
-    public static readonly string[] Methods = ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"];
+    /// <summary>The methods the request executor sends. Keep in step with ExecutionRules.Methods.</summary>
+    public static readonly string[] Methods = ["GET", "POST", "PUT", "PATCH", "DELETE"];
 }

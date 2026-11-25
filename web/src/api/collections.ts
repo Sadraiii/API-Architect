@@ -18,7 +18,7 @@ export interface RequestAuth {
 }
 
 /** Must match the AllowedValues list on SavedRequestInput in the API. */
-export const httpMethods = ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"] as const;
+export const httpMethods = ["GET", "POST", "PUT", "PATCH", "DELETE"] as const;
 export type HttpMethod = (typeof httpMethods)[number];
 
 export interface CollectionSummary {

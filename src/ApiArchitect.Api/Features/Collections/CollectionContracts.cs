@@ -59,8 +59,11 @@ public sealed record AuthDto(
 
 /// <summary>Body for creating or replacing a saved request.</summary>
 /// <param name="Name">Display name.</param>
-/// <param name="Method">GET, POST, PUT, PATCH, DELETE, HEAD or OPTIONS.</param>
-/// <param name="Url">Absolute URL, or a path to append to the environment's base URL. May contain {{variables}}.</param>
+/// <param name="Method">GET, POST, PUT, PATCH or DELETE.</param>
+/// <param name="Url">
+/// Absolute URL, or a path to append to the environment's base URL. May contain {{variables}}. May be empty while
+/// the request is being written; it has to be filled in to run.
+/// </param>
 /// <param name="FolderId">The folder to put it in, or null for the top level of the collection.</param>
 /// <param name="Headers">Headers, up to 100.</param>
 /// <param name="QueryParameters">Query parameters, up to 100. Added to the URL when the request runs.</param>
@@ -69,8 +72,8 @@ public sealed record AuthDto(
 /// <param name="Auth">Authentication. Omit to inherit from the environment.</param>
 public sealed record SavedRequestInput(
     [Required, StringLength(CollectionRules.NameMaxLength)] string Name,
-    [Required, AllowedValues("GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS")] string Method,
-    [Required, StringLength(CollectionRules.UrlMaxLength)] string Url,
+    [Required, AllowedValues("GET", "POST", "PUT", "PATCH", "DELETE")] string Method,
+    [StringLength(CollectionRules.UrlMaxLength)] string? Url,
     Guid? FolderId,
     [MaxLength(CollectionRules.MaxEntries)] List<KeyValueDto>? Headers,
     [MaxLength(CollectionRules.MaxEntries)] List<KeyValueDto>? QueryParameters,

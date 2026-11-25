@@ -131,5 +131,6 @@ export function previewUrl(url: string, query: KeyValue[], environment: Environm
   const params = query
     .filter((q) => q.enabled && q.name)
     .map((q) => `${encodeURIComponent(fill(q.name))}=${encodeURIComponent(fill(q.value))}`);
-  return params.length ? `${result}${result.includes("?") ? "&" : "?"}${params.join("&")}` : result;
+  const queryString = params.join("&").replaceAll(encodeURIComponent("•••"), "•••");
+  return params.length ? `${result}${result.includes("?") ? "&" : "?"}${queryString}` : result;
 }
