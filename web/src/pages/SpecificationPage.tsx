@@ -1,6 +1,7 @@
 import { lazy, Suspense, useMemo, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 import { ApiError } from "../api/client";
+import { useServerSend } from "../api/execution";
 import { useProject } from "../api/projects";
 import {
   documentUrl,
@@ -105,13 +106,14 @@ function SpecificationWorkspace({ specification }: { specification: Specificatio
       <div className="mt-5" role="tabpanel">
         <ErrorMessage error={document.error} />
         {document.isPending && <p className="text-sm text-zinc-500">Loading document…</p>}
-        {document.data && <DocumentView view={view} document={document.data} />}
+        {document.data && <DocumentView view={view} document={document.data} projectId={specification.projectId} />}
       </div>
     </div>
   );
 }
 
-function DocumentView({ view, document }: { view: (typeof views)[number]["id"]; document: OpenApiDocument }) {
+function DocumentView({ view, document, projectId }: { view: (typeof views)[number]["id"]; document: OpenApiDocument; projectId: string }) {
+  const sendRequest = useServerSend(projectId);
   const operations = useMemo(() => listOperations(document), [document]);
   const schemas = useMemo(() => listSchemas(document, operations), [document, operations]);
 
@@ -119,8 +121,8 @@ function DocumentView({ view, document }: { view: (typeof views)[number]["id"]; 
     case "reference":
       return (
         <Suspense fallback={<p className="text-sm text-zinc-500">Loading reference…</p>}>
-          {/* Try it out stays hidden until sendRequest is wired to the server-side request executor. */}
-          <ScalarReference document={document} />
+          {/* Try it out runs through the server-side runner, like the request page, and shows up in its history. */}
+          <ScalarReference document={document} sendRequest={sendRequest} />
         </Suspense>
       );
     case "endpoints":
