@@ -1,7 +1,8 @@
 # API Architect
 
-A hosted workspace for C# and .NET developers to import OpenAPI specifications, read their API documentation,
-and send and save HTTP requests against their APIs.
+A personal workspace for C# and .NET developers to import OpenAPI specifications, read their API documentation,
+and send and save HTTP requests against their APIs. It runs on your own machine, so it can call APIs on your
+localhost and local network.
 
 **Status: Milestone 1 (foundation).** Accounts, sign-in and projects work. Specifications, the API reference,
 the request runner, collections and environments come in the next milestones.
@@ -21,29 +22,33 @@ The web app is a single-page app that ASP.NET Core serves from `wwwroot`, so the
 origin. That's why there is no CORS configuration and no tokens in the browser: the auth cookie is
 `HttpOnly`, `Secure` and `SameSite=Strict`.
 
-## Running locally
+## Running it
 
-Prerequisites: .NET SDK 11.0.100+, Node.js 22+, PostgreSQL 16+.
+Prerequisites: [Docker Desktop](https://www.docker.com/products/docker-desktop/), .NET SDK 11.0.100+, Node.js 22+.
 
-1. Start PostgreSQL. The Development connection string in `src/ApiArchitect.Api/appsettings.Development.json`
-   expects `localhost:5432`, user `postgres`, password `postgres`. Change it there or override it with
-   `dotnet user-secrets set ConnectionStrings:Database "..."` in `src/ApiArchitect.Api`.
-2. Run the API. In Development it applies EF Core migrations on startup.
+1. Start PostgreSQL in Docker (first run downloads the image; data is kept in the `pgdata` volume):
+   ```bash
+   docker compose up -d
+   ```
+2. Build the web app once (it writes to `src/ApiArchitect.Api/wwwroot`):
+   ```bash
+   cd web && npm install && npm run build && cd ..
+   ```
+3. Run the app. It applies database migrations on startup.
    ```bash
    dotnet run --project src/ApiArchitect.Api --launch-profile https
    ```
-3. Run the web app with hot reload. Vite proxies `/api` to the API on `https://localhost:7149`.
-   ```bash
-   cd web
-   npm install
-   npm run dev
-   ```
-   Open http://localhost:5173.
+   Open https://localhost:7149. If the browser warns about the certificate, run `dotnet dev-certs https --trust` once.
 
-To try the production layout instead, run `npm run build` in `web/` (it writes to `src/ApiArchitect.Api/wwwroot`)
-and open the API's own URL.
+Stop PostgreSQL with `docker compose down`. Your data stays in the volume; `docker compose down -v` deletes it.
 
-The API's OpenAPI document is at `/openapi/v1.json` and its Scalar reference at `/scalar` (Development only).
+The app runs outside Docker on purpose: inside a container, `localhost` means the container itself, so it
+couldn't reach the APIs you're developing on your machine.
+
+**Working on the web app?** Run `npm run dev` in `web/` alongside step 3 and open http://localhost:5173 for hot
+reload. Vite forwards `/api` to the app on `https://localhost:7149`.
+
+The app's own OpenAPI document is at `/openapi/v1.json` and its Scalar reference at `/scalar`.
 
 ## Tests
 
@@ -122,12 +127,9 @@ Follow `Features/Projects` as the reference implementation.
 - Registering with an email that's already taken says so. That's normal for sign-up forms but does reveal that
   the account exists; email confirmation would remove it.
 
-## Not done yet, needed before going live
+## Not done yet
 
-- **Azure deployment.** Not set up. Hosting needs an App Service (or Container Apps) plus Azure Database for
-  PostgreSQL, the connection string in Key Vault or app settings, and migrations run as a deploy step.
-- **Data Protection keys.** The auth cookie is encrypted with them. With more than one instance, or after a
-  redeploy, they must be persisted (for example Azure Blob Storage + Key Vault) or everyone is signed out.
-- **Forwarded headers.** Behind Azure's front end, the rate limiter needs `ForwardedHeaders` configured to see
-  the real client IP.
-- **Email.** No confirmation or password reset yet; both need an email sender.
+- No email confirmation or password reset. For a single-user local install that's fine; you can reset a password
+  by deleting the user row and registering again.
+- The app is meant for your machine only. Putting it on the internet would need persisted Data Protection keys,
+  forwarded-header handling for the rate limiter, and an outbound request guard that blocks private networks.
