@@ -86,4 +86,43 @@ public sealed class AuthTests(ApiFactory factory)
         Assert.Equal(HttpStatusCode.NoContent, logout.StatusCode);
         Assert.Equal(HttpStatusCode.Unauthorized, me.StatusCode);
     }
+
+    [Fact]
+    public async Task Intro_is_unseen_until_marked_and_stays_seen_after_login()
+    {
+        var (client, email) = await factory.CreateSignedInClientAsync();
+
+        var before = await client.GetFromJsonAsync<CurrentUserResponse>("/api/auth/me", Ct);
+        var mark = await client.PostAsync("/api/auth/me/intro-seen", content: null, Ct);
+        var after = await client.GetFromJsonAsync<CurrentUserResponse>("/api/auth/me", Ct);
+
+        var login = await factory.CreateAnonymousClient()
+            .PostAsJsonAsync("/api/auth/login", new { email, password = TestPasswords.Valid }, Ct);
+        var loggedIn = await login.Content.ReadFromJsonAsync<CurrentUserResponse>(Ct);
+
+        Assert.False(before!.IntroSeen);
+        Assert.Equal(HttpStatusCode.NoContent, mark.StatusCode);
+        Assert.True(after!.IntroSeen);
+        Assert.True(loggedIn!.IntroSeen);
+    }
+
+    [Fact]
+    public async Task Intro_seen_is_per_user()
+    {
+        var (first, _) = await factory.CreateSignedInClientAsync();
+        var (second, _) = await factory.CreateSignedInClientAsync();
+
+        await first.PostAsync("/api/auth/me/intro-seen", content: null, Ct);
+        var me = await second.GetFromJsonAsync<CurrentUserResponse>("/api/auth/me", Ct);
+
+        Assert.False(me!.IntroSeen);
+    }
+
+    [Fact]
+    public async Task Marking_intro_seen_without_signing_in_returns_401()
+    {
+        var response = await factory.CreateAnonymousClient().PostAsync("/api/auth/me/intro-seen", content: null, Ct);
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
 }
