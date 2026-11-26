@@ -78,6 +78,7 @@ var executionOptions = builder.Configuration.GetSection(ExecutionOptions.Section
 builder.Services.Configure<ExecutionOptions>(builder.Configuration.GetSection(ExecutionOptions.SectionName));
 builder.Services.AddSingleton<RequestExecutor>();
 builder.Services.AddScoped<ExecutionHistory>();
+builder.Services.AddSingleton<SpecificationFetcher>();
 
 builder.Services.AddRateLimiter(options =>
 {

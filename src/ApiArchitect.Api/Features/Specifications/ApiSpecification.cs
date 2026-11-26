@@ -29,6 +29,9 @@ public sealed class ApiSpecification
     /// <summary>The document's <c>openapi</c> field, such as <c>3.1.0</c>.</summary>
     public required string OpenApiVersion { get; set; }
 
+    /// <summary>Where the document was downloaded from, when it was imported from a URL. Used by re-import.</summary>
+    public string? SourceUrl { get; set; }
+
     public DateTimeOffset CreatedAt { get; init; }
 
     public DateTimeOffset UpdatedAt { get; set; }
@@ -40,6 +43,7 @@ public static class SpecificationRules
     public const int TitleMaxLength = 200;
     public const int VersionMaxLength = 50;
     public const int OpenApiVersionMaxLength = 20;
+    public const int SourceUrlMaxLength = 2048;
 
     /// <summary>5 million characters. Large real-world documents (Stripe, GitHub) are 2–4 MB of JSON.</summary>
     public const int ContentMaxLength = 5_000_000;

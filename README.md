@@ -30,7 +30,8 @@ Stop with Ctrl+C and `docker compose down`. Data is kept in the `pgdata` volume 
 The app runs outside Docker so it can reach APIs on your localhost. Rebuild `web/` after pulling front-end changes.
 
 To get a spec from your own ASP.NET Core API, use `/openapi/v1.json` (served when the app calls `AddOpenApi()` and
-`MapOpenApi()`).
+`MapOpenApi()`). Import it by URL and use Re-import on the spec page to pull the latest version and see what changed.
+Import API on the Projects page creates a project from a spec in one step.
 
 ## Settings
 
