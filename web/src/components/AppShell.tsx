@@ -1,5 +1,7 @@
+import { useCallback, useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router";
-import { useCurrentUser, useLogout } from "../api/auth";
+import { useCurrentUser, useLogout, useMarkIntroSeen } from "../api/auth";
+import { IntroTour } from "./IntroTour";
 
 const navItems = [{ to: "/projects", label: "Projects" }];
 
@@ -7,6 +9,15 @@ export function AppShell() {
   const { data: user } = useCurrentUser();
   const logout = useLogout();
   const navigate = useNavigate();
+  const markIntroSeen = useMarkIntroSeen();
+  // Open on the first visit after registering. Sign-in waits for the user, so it's known here.
+  const [tourOpen, setTourOpen] = useState(() => user?.introSeen === false);
+
+  const closeTour = useCallback(() => {
+    setTourOpen(false);
+    // Finishing and skipping both count as seen. Replays don't need another call.
+    if (user && !user.introSeen) markIntroSeen.mutate();
+  }, [user, markIntroSeen]);
 
   return (
     <div className="flex min-h-screen">
@@ -29,6 +40,15 @@ export function AppShell() {
             </NavLink>
           ))}
         </nav>
+        <div className="px-2 pb-2">
+          <button
+            data-tour="help"
+            className="block w-full rounded-md px-2.5 py-1.5 text-left text-sm text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800/60"
+            onClick={() => setTourOpen(true)}
+          >
+            Introduction
+          </button>
+        </div>
         <div className="border-t border-zinc-200 px-4 py-3 text-xs dark:border-zinc-800">
           <p className="truncate text-zinc-500" title={user?.email}>
             {user?.email}
@@ -44,6 +64,7 @@ export function AppShell() {
       <main className="min-w-0 flex-1 px-8 py-6">
         <Outlet />
       </main>
+      {tourOpen && <IntroTour onClose={closeTour} />}
     </div>
   );
 }

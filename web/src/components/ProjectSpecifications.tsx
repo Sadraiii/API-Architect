@@ -12,10 +12,10 @@ export function ProjectSpecifications({ projectId }: { projectId: string }) {
   const [importing, setImporting] = useState(false);
 
   return (
-    <section className="mt-10">
+    <section data-tour="specifications" className="mt-10">
       <header className="mb-3 flex items-center justify-between">
         <h2 className="text-sm font-semibold">API specifications</h2>
-        {!importing && <Button variant="secondary" onClick={() => setImporting(true)}>Import OpenAPI</Button>}
+        {!importing && <Button data-tour="import-spec" variant="secondary" onClick={() => setImporting(true)}>Import OpenAPI</Button>}
       </header>
 
       {importing && (

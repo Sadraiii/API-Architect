@@ -14,7 +14,7 @@ export function ProjectsPage() {
     <div className="max-w-4xl">
       <header className="mb-6 flex items-center justify-between">
         <h1 className="text-lg font-semibold">Projects</h1>
-        {!creating && <Button onClick={() => setCreating(true)}>New project</Button>}
+        {!creating && <Button data-tour="new-project" onClick={() => setCreating(true)}>New project</Button>}
       </header>
 
       {creating && (
