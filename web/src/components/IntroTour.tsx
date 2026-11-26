@@ -25,20 +25,20 @@ const allSteps: TourStep[] = [
     title: "Welcome to API Architect",
     body: (
       <>
-        This is where you keep, read and test your own APIs. The next few steps show the usual order of work. You can skip
-        now and replay the tour later from <b>Introduction</b> in the sidebar.
+        Keep, read and test your own APIs. These steps follow the usual order of work. Skip now and replay later from{" "}
+        <b>Introduction</b> in the sidebar.
       </>
     ),
   },
   {
     title: "Create a project",
-    body: "A project holds one API: its specifications, designs, saved requests and environments. Click New project, give it a name and save.",
+    body: "A project holds one API: its specifications, designs, saved requests and environments.",
     target: tour("new-project"),
     whereToFind: "Go to Projects and click New project.",
   },
   {
     title: "Or import an API you already have",
-    body: "Import API makes the project for you from an OpenAPI URL, file or pasted JSON, and names it after the API.",
+    body: "Import API creates a project from an OpenAPI URL, file or pasted JSON, named after the API.",
     target: findImportApiButton,
     onlyIf: () => findImportApiButton() !== null,
   },
@@ -46,9 +46,9 @@ const allSteps: TourStep[] = [
     title: "Import or design your API",
     body: (
       <>
-        Inside a project, click <b>Import OpenAPI</b> and pick or paste a JSON document. For an ASP.NET Core API that is
-        usually <code className="font-mono text-xs">/openapi/v1.json</code>. Starting from nothing? Use <b>New design</b>{" "}
-        to build models and endpoints, then generate the spec and a .NET project from it.
+        In a project, <b>Import OpenAPI</b> takes a JSON document. For ASP.NET Core that is usually{" "}
+        <code className="font-mono text-xs">/openapi/v1.json</code>. To start from nothing, use <b>New design</b> to build
+        models and endpoints, then generate the spec and a .NET project.
       </>
     ),
     target: tour("import-spec"),
@@ -56,13 +56,13 @@ const allSteps: TourStep[] = [
   },
   {
     title: "Browse the docs",
-    body: "Open a specification to read its API reference, list endpoints and look at schemas. Try it out in the reference sends through the same runner as below.",
+    body: "Open a specification for its API reference, endpoints and schemas. Try it out in the reference uses the same runner as Send a request.",
     target: tour("specifications"),
     whereToFind: "Imported specifications are listed on the project page.",
   },
   {
     title: "Send requests",
-    body: "Send a request builds a call with method, URL, headers, auth and body. It runs from the app's server, so APIs on localhost work. You get status, headers, body and timing back.",
+    body: "Build a call with method, URL, headers, auth and body. It runs from the app's server, so APIs on localhost work.",
     target: tour("send-request"),
     whereToFind: "Open a project and click Send a request.",
   },
@@ -70,8 +70,8 @@ const allSteps: TourStep[] = [
     title: "Save work in collections",
     body: (
       <>
-        Collections keep requests in folders so you can send them again. Environments hold variables like{" "}
-        <code className="font-mono text-xs">{"{{baseUrl}}"}</code> and secrets, so the same request works against local and
+        Collections keep requests in folders. Environments hold variables like{" "}
+        <code className="font-mono text-xs">{"{{baseUrl}}"}</code> and secrets, so one request works against local and
         staging.
       </>
     ),
@@ -80,13 +80,13 @@ const allSteps: TourStep[] = [
   },
   {
     title: "Call your API from C#",
-    body: "Client code gives you C# that calls one of your imported APIs: pick a specification, the operations you need and the kind of app, then paste it into a new project. Each specification page has a Client code button too.",
+    body: "Client code gives you C# that calls one of your APIs. Pick a specification, the operations and the kind of app, then paste it into a new project.",
     target: clientCodeLink,
     onlyIf: () => clientCodeLink() !== null,
   },
   {
     title: "That's it",
-    body: "Start by creating a project. Click Introduction here any time to see this tour again.",
+    body: "Click Introduction any time to see this tour again.",
     target: tour("help"),
   },
 ];

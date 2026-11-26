@@ -101,7 +101,7 @@ public static class AuthEndpoints
         var user = await users.GetUserAsync(principal);
         if (user is null) return TypedResults.Unauthorized();
 
-        // Keep the first time. Replaying the tour from Help shouldn't move the date.
+        // Keep the first time, so replaying the tour doesn't move the date.
         if (user.IntroSeenAt is null)
         {
             user.IntroSeenAt = clock.GetUtcNowForStorage();
