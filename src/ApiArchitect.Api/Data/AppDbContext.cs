@@ -129,6 +129,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : Ident
             specification.Property(s => s.Title).HasMaxLength(SpecificationRules.TitleMaxLength);
             specification.Property(s => s.Version).HasMaxLength(SpecificationRules.VersionMaxLength);
             specification.Property(s => s.OpenApiVersion).HasMaxLength(SpecificationRules.OpenApiVersionMaxLength);
+            specification.Property(s => s.SourceUrl).HasMaxLength(SpecificationRules.SourceUrlMaxLength);
 
             specification.HasOne(s => s.Project)
                 .WithMany()
