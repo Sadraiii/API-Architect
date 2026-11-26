@@ -11,4 +11,4 @@ public sealed record LoginRequest(
     [Required, StringLength(128)] string Password,
     bool RememberMe = false);
 
-public sealed record CurrentUserResponse(string Email);
+public sealed record CurrentUserResponse(string Email, bool IntroSeen);

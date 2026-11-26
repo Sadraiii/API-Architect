@@ -1,14 +1,17 @@
 import { lazy, Suspense, useMemo, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 import { ApiError } from "../api/client";
+import { useServerSend } from "../api/execution";
 import { useProject } from "../api/projects";
 import {
   documentUrl,
   useDeleteSpecification,
+  useReimportSpecification,
   useReplaceSpecification,
   useSpecification,
   useSpecificationDocument,
   type Specification,
+  type SpecificationChanges,
 } from "../api/specifications";
 import { EndpointExplorer } from "../components/EndpointExplorer";
 import { SchemaViewer } from "../components/SchemaViewer";
@@ -49,6 +52,7 @@ function SpecificationWorkspace({ specification }: { specification: Specificatio
   const [searchParams, setSearchParams] = useSearchParams();
   const view = views.find((v) => v.id === searchParams.get("view"))?.id ?? "reference";
   const [mode, setMode] = useState<"view" | "replace" | "delete">("view");
+  const reimport = useReimportSpecification(specification.id);
 
   return (
     <div>
@@ -66,6 +70,11 @@ function SpecificationWorkspace({ specification }: { specification: Specificatio
             <span className="font-mono">OpenAPI {specification.openApiVersion}</span> · updated{" "}
             {new Date(specification.updatedAt).toLocaleString()}
           </p>
+          {specification.sourceUrl && (
+            <p className="mt-0.5 truncate text-xs text-zinc-500">
+              From <span className="font-mono">{specification.sourceUrl}</span>
+            </p>
+          )}
         </div>
         <div className="flex gap-2">
           {/* Same-origin link, so the download attribute works and the auth cookie goes along. */}
@@ -76,10 +85,28 @@ function SpecificationWorkspace({ specification }: { specification: Specificatio
           >
             Export JSON
           </a>
+          <Link
+            to={`/client-code?specification=${specification.id}`}
+            className="inline-flex h-9 items-center rounded-md border border-zinc-300 bg-white px-3.5 text-sm font-medium hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:bg-zinc-800"
+          >
+            Client code
+          </Link>
+          {specification.sourceUrl && (
+            <Button variant="secondary" disabled={reimport.isPending} onClick={() => reimport.mutate()}>
+              {reimport.isPending ? "Re-importing…" : "Re-import"}
+            </Button>
+          )}
           <Button variant="secondary" onClick={() => setMode("replace")}>Upload new version</Button>
           <Button variant="secondary" onClick={() => setMode("delete")}>Delete…</Button>
         </div>
       </header>
+
+      {reimport.error != null && (
+        <div className="mt-4 max-w-3xl">
+          <ErrorMessage error={reimport.error} />
+        </div>
+      )}
+      {reimport.data && <ChangesPanel changes={reimport.data.changes} onClose={() => reimport.reset()} />}
 
       {mode === "replace" && <ReplacePanel specification={specification} onDone={() => setMode("view")} />}
       {mode === "delete" && <DeletePanel specification={specification} onCancel={() => setMode("view")} />}
@@ -105,13 +132,14 @@ function SpecificationWorkspace({ specification }: { specification: Specificatio
       <div className="mt-5" role="tabpanel">
         <ErrorMessage error={document.error} />
         {document.isPending && <p className="text-sm text-zinc-500">Loading document…</p>}
-        {document.data && <DocumentView view={view} document={document.data} />}
+        {document.data && <DocumentView view={view} document={document.data} projectId={specification.projectId} />}
       </div>
     </div>
   );
 }
 
-function DocumentView({ view, document }: { view: (typeof views)[number]["id"]; document: OpenApiDocument }) {
+function DocumentView({ view, document, projectId }: { view: (typeof views)[number]["id"]; document: OpenApiDocument; projectId: string }) {
+  const sendRequest = useServerSend(projectId);
   const operations = useMemo(() => listOperations(document), [document]);
   const schemas = useMemo(() => listSchemas(document, operations), [document, operations]);
 
@@ -119,8 +147,7 @@ function DocumentView({ view, document }: { view: (typeof views)[number]["id"]; 
     case "reference":
       return (
         <Suspense fallback={<p className="text-sm text-zinc-500">Loading reference…</p>}>
-          {/* Try it out stays hidden until sendRequest is wired to the server-side request executor. */}
-          <ScalarReference document={document} />
+          <ScalarReference document={document} sendRequest={sendRequest} />
         </Suspense>
       );
     case "endpoints":
@@ -128,6 +155,49 @@ function DocumentView({ view, document }: { view: (typeof views)[number]["id"]; 
     case "schemas":
       return <SchemaViewer document={document} schemas={schemas} />;
   }
+}
+
+/** The result of a re-import: what was added, removed or changed. */
+function ChangesPanel({ changes, onClose }: { changes: SpecificationChanges; onClose: () => void }) {
+  const groups = [
+    { label: "New endpoints", items: changes.addedEndpoints, mark: "+", color: "text-emerald-700 dark:text-emerald-400" },
+    { label: "Removed endpoints", items: changes.removedEndpoints, mark: "−", color: "text-red-700 dark:text-red-400" },
+    { label: "Changed endpoints", items: changes.changedEndpoints, mark: "~", color: "text-amber-700 dark:text-amber-400" },
+    { label: "New schemas", items: changes.addedSchemas, mark: "+", color: "text-emerald-700 dark:text-emerald-400" },
+    { label: "Removed schemas", items: changes.removedSchemas, mark: "−", color: "text-red-700 dark:text-red-400" },
+    { label: "Changed schemas", items: changes.changedSchemas, mark: "~", color: "text-amber-700 dark:text-amber-400" },
+  ].filter((group) => group.items.length > 0);
+
+  return (
+    <section role="status" className="mt-4 max-w-3xl rounded-lg border border-zinc-200 p-5 dark:border-zinc-800">
+      <header className="flex items-start justify-between gap-4">
+        <h2 className="text-sm font-semibold">
+          {changes.hasChanges ? "Re-imported. Here's what changed:" : "Re-imported. Nothing changed."}
+        </h2>
+        <button onClick={onClose} className="text-sm text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200">Close</button>
+      </header>
+      {changes.oldVersion !== changes.newVersion && (
+        <p className="mt-2 text-sm">
+          Version <span className="font-mono">{changes.oldVersion}</span> → <span className="font-mono">{changes.newVersion}</span>
+        </p>
+      )}
+      {groups.map((group) => (
+        <div key={group.label} className="mt-3">
+          <h3 className="text-xs font-medium uppercase tracking-wide text-zinc-500">{group.label}</h3>
+          <ul className="mt-1 space-y-0.5 font-mono text-sm">
+            {group.items.map((item) => (
+              <li key={item} className={group.color}>
+                {group.mark} {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+      {changes.otherChanges && (
+        <p className="mt-3 text-sm text-zinc-500">Other parts changed too, such as the description, servers or tags.</p>
+      )}
+    </section>
+  );
 }
 
 function ReplacePanel({ specification, onDone }: { specification: Specification; onDone: () => void }) {
@@ -138,10 +208,11 @@ function ReplacePanel({ specification, onDone }: { specification: Specification;
       <p className="mb-4 text-sm text-zinc-500">The new document replaces the current one. Export it first if you want to keep a copy.</p>
       <SpecificationForm
         initialName={specification.name}
+        allowUrl={false}
         submitLabel="Replace document"
         pending={replace.isPending}
         error={replace.error}
-        onSubmit={(input) => replace.mutate(input, { onSuccess: onDone })}
+        onSubmit={(input) => "content" in input && replace.mutate(input, { onSuccess: onDone })}
         onCancel={onDone}
       />
     </section>

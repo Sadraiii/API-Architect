@@ -17,17 +17,10 @@ public static class OpenApiImport
     /// <summary>Parses <paramref name="content"/>. Returns the extracted fields, or the problems found.</summary>
     public static (Result? Result, string[] Errors) Read(string content)
     {
-        var settings = new OpenApiReaderSettings
-        {
-            // Never follow external $refs. Resolving them would make the server fetch any URL a user puts in a
-            // document (SSRF), and the stored document is what gets rendered anyway.
-            LoadExternalRefs = false,
-        };
-
         ReadResult read;
         try
         {
-            read = OpenApiDocument.Parse(content, OpenApiConstants.Json, settings);
+            read = Parse(content);
         }
         catch (Exception ex) when (ex is OpenApiException or System.Text.Json.JsonException or FormatException)
         {
@@ -69,6 +62,19 @@ public static class OpenApiImport
         }
 
         return (new Result(title.Trim(), version.Trim(), openApiVersion), []);
+    }
+
+    /// <summary>Parses a stored document. Callers handle the exceptions listed in <see cref="Read"/>.</summary>
+    public static ReadResult Parse(string content)
+    {
+        var settings = new OpenApiReaderSettings
+        {
+            // Never follow external $refs. Resolving them would make the server fetch any URL a user puts in a
+            // document (SSRF), and the stored document is what gets rendered anyway.
+            LoadExternalRefs = false,
+        };
+
+        return OpenApiDocument.Parse(content, OpenApiConstants.Json, settings);
     }
 
     /// <summary>

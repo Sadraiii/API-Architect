@@ -1,23 +1,52 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { useCreateProject, useProjects } from "../api/projects";
+import { useImportProject } from "../api/specifications";
 import { ProjectForm } from "../components/ProjectForm";
+import { SpecificationForm } from "../components/SpecificationForm";
 import { Button, ErrorMessage } from "../components/ui";
 
 export function ProjectsPage() {
   const projects = useProjects();
   const createProject = useCreateProject();
   const navigate = useNavigate();
-  const [creating, setCreating] = useState(false);
+  const importProject = useImportProject();
+  const [panel, setPanel] = useState<"create" | "import">();
+  const creating = panel !== undefined;
 
   return (
     <div className="max-w-4xl">
       <header className="mb-6 flex items-center justify-between">
         <h1 className="text-lg font-semibold">Projects</h1>
-        {!creating && <Button onClick={() => setCreating(true)}>New project</Button>}
+        {!creating && (
+          <div className="flex gap-2">
+            <Button variant="secondary" onClick={() => setPanel("import")}>Import API</Button>
+            <Button data-tour="new-project" onClick={() => setPanel("create")}>New project</Button>
+          </div>
+        )}
       </header>
 
-      {creating && (
+      {panel === "import" && (
+        <section className="mb-8 rounded-lg border border-zinc-200 p-5 dark:border-zinc-800">
+          <h2 className="text-sm font-semibold">Import an API as a new project</h2>
+          <p className="mb-4 mt-1 text-sm text-zinc-500">The project is named after the API's title. You can rename it later.</p>
+          <SpecificationForm
+            askName={false}
+            submitLabel="Create project"
+            pending={importProject.isPending}
+            error={importProject.error}
+            onSubmit={(input) =>
+              importProject.mutate(input, { onSuccess: (specification) => navigate(`/specifications/${specification.id}`) })
+            }
+            onCancel={() => {
+              setPanel(undefined);
+              importProject.reset();
+            }}
+          />
+        </section>
+      )}
+
+      {panel === "create" && (
         <section className="mb-8 rounded-lg border border-zinc-200 p-5 dark:border-zinc-800">
           <h2 className="mb-4 text-sm font-semibold">New project</h2>
           <ProjectForm
@@ -26,7 +55,7 @@ export function ProjectsPage() {
             error={createProject.error}
             onSubmit={(input) => createProject.mutate(input, { onSuccess: (project) => navigate(`/projects/${project.id}`) })}
             onCancel={() => {
-              setCreating(false);
+              setPanel(undefined);
               createProject.reset();
             }}
           />
@@ -39,6 +68,7 @@ export function ProjectsPage() {
         <div className="rounded-lg border border-dashed border-zinc-300 p-10 text-center dark:border-zinc-700">
           <p className="text-sm text-zinc-600 dark:text-zinc-400">You have no projects yet.</p>
           <p className="mt-1 text-sm text-zinc-500">A project holds one API's specifications, requests and environments.</p>
+          <p className="mt-1 text-sm text-zinc-500">Use Import API to start one straight from an OpenAPI document or URL.</p>
         </div>
       )}
       {projects.data && projects.data.length > 0 && (

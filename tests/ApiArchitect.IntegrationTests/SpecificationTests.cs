@@ -12,7 +12,7 @@ public sealed class SpecificationTests(ApiFactory factory)
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
 
     // Deliberately unusual formatting and key order: export must give back exactly these characters.
-    private const string PetsDocument = """
+    internal const string PetsDocument = """
         {
           "openapi": "3.1.1",
           "info": { "version": "2.4.0", "title": "Pets API" },
