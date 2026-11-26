@@ -21,7 +21,7 @@ export function ProjectsPage() {
         {!creating && (
           <div className="flex gap-2">
             <Button variant="secondary" onClick={() => setPanel("import")}>Import API</Button>
-            <Button onClick={() => setPanel("create")}>New project</Button>
+            <Button data-tour="new-project" onClick={() => setPanel("create")}>New project</Button>
           </div>
         )}
       </header>

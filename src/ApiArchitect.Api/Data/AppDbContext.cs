@@ -1,4 +1,5 @@
 using ApiArchitect.Api.Features.Collections;
+using ApiArchitect.Api.Features.Designs;
 using ApiArchitect.Api.Features.Environments;
 using ApiArchitect.Api.Features.Execution;
 using ApiArchitect.Api.Features.Projects;
@@ -21,7 +22,10 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : Ident
     public DbSet<ApiEnvironment> Environments => Set<ApiEnvironment>();
 
     public DbSet<RequestExecution> RequestExecutions => Set<RequestExecution>();
+
     public DbSet<ApiSpecification> ApiSpecifications => Set<ApiSpecification>();
+
+    public DbSet<ApiDesign> ApiDesigns => Set<ApiDesign>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -138,6 +142,25 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : Ident
 
             // Serves "a project's specifications, most recently updated first".
             specification.HasIndex(s => new { s.ProjectId, s.UpdatedAt });
+        });
+
+        builder.Entity<ApiDesign>(design =>
+        {
+            design.Property(d => d.Name).HasMaxLength(DesignRules.NameMaxLength);
+
+            design.HasOne(d => d.Project)
+                .WithMany()
+                .HasForeignKey(d => d.ProjectId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Deleting a specification that was saved from a design just unlinks it; the design stays.
+            design.HasOne(d => d.Specification)
+                .WithMany()
+                .HasForeignKey(d => d.SpecificationId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // Serves "a project's designs, most recently updated first".
+            design.HasIndex(d => new { d.ProjectId, d.UpdatedAt });
         });
     }
 }

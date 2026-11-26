@@ -1,3 +1,4 @@
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -5,16 +6,15 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace ApiArchitect.Api.Data.Migrations;
 
 /// <inheritdoc />
-public partial class _20261126045831_AddSpecificationSourceUrl : Migration
+public partial class _20261126053131_AddIntroSeenAt : Migration
 {
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        migrationBuilder.AddColumn<string>(
-            name: "SourceUrl",
-            table: "ApiSpecifications",
-            type: "character varying(2048)",
-            maxLength: 2048,
+        migrationBuilder.AddColumn<DateTimeOffset>(
+            name: "IntroSeenAt",
+            table: "AspNetUsers",
+            type: "timestamp with time zone",
             nullable: true);
     }
 
@@ -22,7 +22,7 @@ public partial class _20261126045831_AddSpecificationSourceUrl : Migration
     protected override void Down(MigrationBuilder migrationBuilder)
     {
         migrationBuilder.DropColumn(
-            name: "SourceUrl",
-            table: "ApiSpecifications");
+            name: "IntroSeenAt",
+            table: "AspNetUsers");
     }
 }
