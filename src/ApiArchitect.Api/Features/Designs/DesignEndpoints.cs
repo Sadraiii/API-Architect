@@ -266,10 +266,7 @@ public static class DesignEndpoints
         JsonSerializer.Deserialize<DesignDocument>(design.Content, StorageOptions)
             ?? throw new InvalidOperationException($"Design {design.Id} has no content.");
 
-    /// <summary>
-    /// The stored document, checked again before generating anything: designs saved under older, looser rules
-    /// get a clear 400 instead of broken output.
-    /// </summary>
+    /// <summary>The stored document, validated again so generating from it gives a 400 rather than broken output.</summary>
     private static (DesignDocument? Document, Dictionary<string, string[]> Errors) ReadValid(ApiDesign design)
     {
         var document = Read(design);

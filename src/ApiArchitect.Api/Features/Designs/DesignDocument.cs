@@ -11,7 +11,6 @@ public sealed record DesignDocument
     public string Title { get; init; } = "";
     /// <summary>API version, used for <c>info.version</c>, such as 1.0.0.</summary>
     public string Version { get; init; } = "";
-    /// <summary>Optional API description.</summary>
     public string? Description { get; init; }
     /// <summary>Root namespace and project name of the generated code, such as <c>Bookstore.Api</c>.</summary>
     public string Namespace { get; init; } = "";

@@ -300,9 +300,9 @@ public static class DesignOpenApiWriter
     private static string Code(int status) => status.ToString(CultureInfo.InvariantCulture);
 
     /// <summary>The JSON name ASP.NET Core's default (camelCase) serializer gives a C# property.</summary>
-    public static string JsonName(string propertyName) => JsonNamingPolicy.CamelCase.ConvertName(propertyName);
+    private static string JsonName(string propertyName) => JsonNamingPolicy.CamelCase.ConvertName(propertyName);
 
-    public static string StatusDescription(int status) => status switch
+    private static string StatusDescription(int status) => status switch
     {
         200 => "OK",
         201 => "Created",
