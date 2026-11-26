@@ -9,4 +9,7 @@ namespace ApiArchitect.Api.Data;
 public sealed class AppUser : IdentityUser
 {
     public DateTimeOffset CreatedAt { get; init; }
+
+    /// <summary>When the user finished or skipped the introduction tour. Null means show it on next visit.</summary>
+    public DateTimeOffset? IntroSeenAt { get; set; }
 }

@@ -4,6 +4,7 @@ using ApiArchitect.Api.Data;
 using ApiArchitect.Api.Features.ClientCode;
 using ApiArchitect.Api.Features.Auth;
 using ApiArchitect.Api.Features.Collections;
+using ApiArchitect.Api.Features.Designs;
 using ApiArchitect.Api.Features.Environments;
 using ApiArchitect.Api.Features.Execution;
 using ApiArchitect.Api.Features.Projects;
@@ -78,6 +79,7 @@ var executionOptions = builder.Configuration.GetSection(ExecutionOptions.Section
 builder.Services.Configure<ExecutionOptions>(builder.Configuration.GetSection(ExecutionOptions.SectionName));
 builder.Services.AddSingleton<RequestExecutor>();
 builder.Services.AddScoped<ExecutionHistory>();
+builder.Services.AddSingleton<SpecificationFetcher>();
 
 builder.Services.AddRateLimiter(options =>
 {
@@ -148,6 +150,7 @@ app.MapEnvironmentEndpoints();
 app.MapExecutionEndpoints();
 app.MapSpecificationEndpoints();
 app.MapClientCodeEndpoints();
+app.MapDesignEndpoints();
 
 // Unknown /api routes are real 404s; every other unknown path belongs to the SPA's client-side router.
 app.MapFallback("/api/{**path}", () => TypedResults.NotFound());

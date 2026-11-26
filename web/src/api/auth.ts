@@ -3,6 +3,8 @@ import { api, ApiError } from "./client";
 
 export interface CurrentUser {
   email: string;
+  /** True once the user has finished or skipped the introduction tour. */
+  introSeen: boolean;
 }
 
 const meKey = ["auth", "me"] as const;
@@ -50,5 +52,15 @@ export function useLogout() {
       queryClient.clear();
       queryClient.setQueryData(meKey, null);
     },
+  });
+}
+
+/** Records that the introduction tour was finished or skipped, so it doesn't open again on sign-in. */
+export function useMarkIntroSeen() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => api<void>("/api/auth/me/intro-seen", { method: "POST" }),
+    onSuccess: () =>
+      queryClient.setQueryData<CurrentUser | null>(meKey, (user) => (user ? { ...user, introSeen: true } : user)),
   });
 }

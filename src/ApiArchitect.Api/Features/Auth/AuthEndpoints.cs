@@ -33,6 +33,10 @@ public static class AuthEndpoints
         group.MapGet("/me", Me)
             .RequireAuthorization()
             .WithSummary("The signed-in user. Returns 401 when not signed in.");
+
+        group.MapPost("/me/intro-seen", MarkIntroSeen)
+            .RequireAuthorization()
+            .WithSummary("Record that the user finished or skipped the introduction tour.");
     }
 
     private static async Task<Results<Ok<CurrentUserResponse>, ValidationProblem>> Register(
@@ -53,18 +57,19 @@ public static class AuthEndpoints
         }
 
         await signIn.SignInAsync(user, isPersistent: false);
-        return TypedResults.Ok(new CurrentUserResponse(email));
+        return TypedResults.Ok(new CurrentUserResponse(email, IntroSeen: false));
     }
 
     private static async Task<Results<Ok<CurrentUserResponse>, ProblemHttpResult>> Login(
-        LoginRequest request, SignInManager<AppUser> signIn)
+        LoginRequest request, UserManager<AppUser> users, SignInManager<AppUser> signIn)
     {
-        var result = await signIn.PasswordSignInAsync(
-            request.Email.Trim(), request.Password, request.RememberMe, lockoutOnFailure: true);
+        var email = request.Email.Trim();
+        var result = await signIn.PasswordSignInAsync(email, request.Password, request.RememberMe, lockoutOnFailure: true);
 
         if (result.Succeeded)
         {
-            return TypedResults.Ok(new CurrentUserResponse(request.Email.Trim()));
+            var user = await users.FindByNameAsync(email);
+            return TypedResults.Ok(ToResponse(user!));
         }
 
         // One message for unknown email, wrong password and lockout, so the response can't be used
@@ -81,6 +86,31 @@ public static class AuthEndpoints
         return TypedResults.NoContent();
     }
 
-    private static Ok<CurrentUserResponse> Me(ClaimsPrincipal user) =>
-        TypedResults.Ok(new CurrentUserResponse(user.FindFirstValue(ClaimTypes.Email) ?? user.Identity!.Name!));
+    private static async Task<Results<Ok<CurrentUserResponse>, UnauthorizedHttpResult>> Me(
+        ClaimsPrincipal principal, UserManager<AppUser> users)
+    {
+        // Read from the database rather than the cookie, so IntroSeen is current.
+        // A cookie for a deleted account gets 401, same as no cookie.
+        var user = await users.GetUserAsync(principal);
+        return user is null ? TypedResults.Unauthorized() : TypedResults.Ok(ToResponse(user));
+    }
+
+    private static async Task<Results<NoContent, UnauthorizedHttpResult>> MarkIntroSeen(
+        ClaimsPrincipal principal, UserManager<AppUser> users, TimeProvider clock)
+    {
+        var user = await users.GetUserAsync(principal);
+        if (user is null) return TypedResults.Unauthorized();
+
+        // Keep the first time, so replaying the tour doesn't move the date.
+        if (user.IntroSeenAt is null)
+        {
+            user.IntroSeenAt = clock.GetUtcNowForStorage();
+            await users.UpdateAsync(user);
+        }
+
+        return TypedResults.NoContent();
+    }
+
+    private static CurrentUserResponse ToResponse(AppUser user) =>
+        new(user.Email ?? user.UserName!, user.IntroSeenAt is not null);
 }

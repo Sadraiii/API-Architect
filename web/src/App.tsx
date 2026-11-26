@@ -5,6 +5,7 @@ import { ErrorMessage } from "./components/ui";
 import { AuthPage } from "./pages/AuthPage";
 import { ClientCodePage } from "./pages/ClientCodePage";
 import { CollectionsPage } from "./pages/CollectionsPage";
+import { DesignPage } from "./pages/DesignPage";
 import { EnvironmentsPage } from "./pages/EnvironmentsPage";
 import { ProjectPage } from "./pages/ProjectPage";
 import { ProjectsPage } from "./pages/ProjectsPage";
@@ -37,6 +38,7 @@ export function App() {
           <Route path="/projects/:id/request" element={<RequestPage />} />
           <Route path="/specifications/:id" element={<SpecificationPage />} />
           <Route path="/client-code" element={<ClientCodePage />} />
+          <Route path="/designs/:id" element={<DesignPage />} />
           <Route path="*" element={<p className="text-sm">Page not found.</p>} />
         </Route>
       </Route>

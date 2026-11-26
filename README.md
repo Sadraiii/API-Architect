@@ -3,6 +3,9 @@
 A local tool for working with your own APIs. Import an OpenAPI spec, browse it, and send requests to the API,
 including ones running on localhost.
 
+You can also design a new API in a project: define its models and endpoints, check the generated OpenAPI
+reference, and download a .NET 11 minimal API project that builds and runs. The handlers are stubs for you to fill in.
+
 Runs on your machine only. One user, no cloud services.
 
 ## Requirements
@@ -27,7 +30,8 @@ Stop with Ctrl+C and `docker compose down`. Data is kept in the `pgdata` volume 
 The app runs outside Docker so it can reach APIs on your localhost. Rebuild `web/` after pulling front-end changes.
 
 To get a spec from your own ASP.NET Core API, use `/openapi/v1.json` (served when the app calls `AddOpenApi()` and
-`MapOpenApi()`).
+`MapOpenApi()`). Import it by URL and use Re-import on the spec page to pull the latest version and see what changed.
+Import API on the Projects page creates a project from a spec in one step.
 
 ## Client code
 
@@ -90,6 +94,5 @@ New features follow `Features/Projects`:
 
 - No email confirmation or password reset.
 - Spec import is JSON only (OpenAPI 3.0–3.2).
-- "Try it" in the API reference is hidden until it's wired to the request runner.
 - Not set up for public hosting.
 - Postman import skips scripts, form-data bodies and collection variables (it lists what it skipped).

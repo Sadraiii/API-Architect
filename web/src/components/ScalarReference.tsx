@@ -6,11 +6,10 @@ import type { OpenApiDocument } from "../openapi/model";
 /**
  * Sends a "Try it out" request from the reference and returns the target API's response.
  *
- * This is the hook for server-side execution. Scalar builds the request (URL, headers, auth, body) and hands it
- * to this function instead of calling fetch itself. The implementation should forward it to the API's request
- * executor, which applies SSRF protection, timeouts and size limits, and turn the executor's result back into
- * a Response. Until one is passed, the reference's send-request controls are hidden: sending straight from the
- * browser would bypass those protections and fail on CORS for most APIs anyway.
+ * Scalar builds the request (URL, headers, auth, body) and hands it to this function instead of calling fetch
+ * itself. SpecificationPage passes useServerSend, which runs it through the server-side runner (timeouts, size
+ * limits, history). Without one, the send-request controls are hidden: sending straight from the browser would
+ * fail on CORS for most APIs.
  */
 export type SendRequest = (request: Request) => Promise<Response>;
 

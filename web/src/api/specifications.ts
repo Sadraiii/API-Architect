@@ -12,6 +12,8 @@ export interface Specification {
   version: string;
   /** The document's openapi field, such as 3.1.0. */
   openApiVersion: string;
+  /** Where the document was imported from, when it came from a URL. Re-import uses it. */
+  sourceUrl: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -20,6 +22,29 @@ export interface SpecificationInput {
   name: string;
   /** The OpenAPI document as JSON text. */
   content: string;
+}
+
+/** A document to import: pasted or uploaded text, or a URL for the server to download it from. */
+export type SpecificationSource = { name: string; content: string } | { name: string; url: string };
+
+/** What a re-import changed. Endpoints read like "GET /pets/{id}". */
+export interface SpecificationChanges {
+  oldVersion: string;
+  newVersion: string;
+  addedEndpoints: string[];
+  removedEndpoints: string[];
+  changedEndpoints: string[];
+  addedSchemas: string[];
+  removedSchemas: string[];
+  changedSchemas: string[];
+  /** The document changed in other ways too, such as its description, servers or tags. */
+  otherChanges: boolean;
+  hasChanges: boolean;
+}
+
+export interface ReimportResult {
+  specification: Specification;
+  changes: SpecificationChanges;
 }
 
 /** Must match SpecificationRules.ContentMaxLength in the API. */
@@ -61,13 +86,51 @@ export function useSpecificationDocument(id: string) {
 export function useImportSpecification(projectId: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (input: SpecificationInput) =>
-      api<Specification>(`/api/projects/${projectId}/specifications`, { method: "POST", body: input }),
+    mutationFn: (input: SpecificationSource) =>
+      "url" in input
+        ? api<Specification>(`/api/projects/${projectId}/specifications/from-url`, {
+            method: "POST",
+            body: { url: input.url, name: input.name || null },
+          })
+        : api<Specification>(`/api/projects/${projectId}/specifications`, { method: "POST", body: input }),
     onSuccess: (specification) => {
       queryClient.setQueryData(specificationKey(specification.id), specification);
       return Promise.all([
         queryClient.invalidateQueries({ queryKey: projectListKey(projectId) }),
         // Importing bumps the project's UpdatedAt.
+        queryClient.invalidateQueries({ queryKey: ["projects"] }),
+      ]);
+    },
+  });
+}
+
+/** Creates a new project for the API, named after the document's info.title, with the document in it. */
+export function useImportProject() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: SpecificationSource) =>
+      api<Specification>("/api/projects/import", {
+        method: "POST",
+        body: "url" in input ? { url: input.url } : { content: input.content },
+      }),
+    onSuccess: (specification) => {
+      queryClient.setQueryData(specificationKey(specification.id), specification);
+      return queryClient.invalidateQueries({ queryKey: ["projects"] });
+    },
+  });
+}
+
+/** Downloads the document again from its source URL and saves it. */
+export function useReimportSpecification(id: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => api<ReimportResult>(`/api/specifications/${id}/reimport`, { method: "POST" }),
+    onSuccess: ({ specification, changes }) => {
+      queryClient.setQueryData(specificationKey(id), specification);
+      if (!changes.hasChanges) return;
+      return Promise.all([
+        queryClient.invalidateQueries({ queryKey: documentKey(id) }),
+        queryClient.invalidateQueries({ queryKey: projectListKey(specification.projectId) }),
         queryClient.invalidateQueries({ queryKey: ["projects"] }),
       ]);
     },

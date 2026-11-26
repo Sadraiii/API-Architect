@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Text;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -13,13 +14,17 @@ public sealed class LoopbackTarget : IAsyncDisposable
 {
     private readonly WebApplication _app;
 
-    private LoopbackTarget(WebApplication app, Uri baseUrl)
+    private LoopbackTarget(WebApplication app, Uri baseUrl, ConcurrentDictionary<string, string> documents)
     {
         _app = app;
         BaseUrl = baseUrl;
+        Documents = documents;
     }
 
     public Uri BaseUrl { get; }
+
+    /// <summary>Served as JSON at <c>/documents/{key}</c>. Tests change an entry to simulate a new API version.</summary>
+    public ConcurrentDictionary<string, string> Documents { get; }
 
     public string Url(string path) => new Uri(BaseUrl, path).ToString();
 
@@ -29,6 +34,7 @@ public sealed class LoopbackTarget : IAsyncDisposable
         builder.WebHost.UseUrls("http://127.0.0.1:0");
         builder.Logging.ClearProviders();
         var app = builder.Build();
+        var documents = new ConcurrentDictionary<string, string>();
 
         // Echoes what arrived, so tests can check what the executor actually sent.
         app.MapMethods("/echo", ["GET", "POST", "PUT", "PATCH", "DELETE"], async (HttpRequest request) =>
@@ -46,6 +52,8 @@ public sealed class LoopbackTarget : IAsyncDisposable
                 body = await reader.ReadToEndAsync(),
             });
         });
+        app.MapGet("/documents/{key}", (string key) =>
+            documents.TryGetValue(key, out var document) ? Results.Text(document, "application/json") : Results.NotFound());
         app.MapGet("/redirect", () => Results.Redirect("http://169.254.169.254/latest/meta-data/"));
         app.MapGet("/large", () => Results.Text(new string('a', 10_000), "text/plain"));
         app.MapGet("/slow", async (CancellationToken ct) =>
@@ -57,7 +65,7 @@ public sealed class LoopbackTarget : IAsyncDisposable
         app.MapGet("/latin1", () => Results.Bytes(Encoding.Latin1.GetBytes("café"), "text/plain; charset=iso-8859-1"));
 
         await app.StartAsync();
-        return new LoopbackTarget(app, new Uri(app.Urls.Single()));
+        return new LoopbackTarget(app, new Uri(app.Urls.Single()), documents);
     }
 
     public async ValueTask DisposeAsync() => await _app.DisposeAsync();
