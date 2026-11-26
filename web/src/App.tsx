@@ -3,6 +3,7 @@ import { useCurrentUser } from "./api/auth";
 import { AppShell } from "./components/AppShell";
 import { ErrorMessage } from "./components/ui";
 import { AuthPage } from "./pages/AuthPage";
+import { ClientCodePage } from "./pages/ClientCodePage";
 import { CollectionsPage } from "./pages/CollectionsPage";
 import { DesignPage } from "./pages/DesignPage";
 import { EnvironmentsPage } from "./pages/EnvironmentsPage";
@@ -36,6 +37,7 @@ export function App() {
           <Route path="/projects/:id/environments" element={<EnvironmentsPage />} />
           <Route path="/projects/:id/request" element={<RequestPage />} />
           <Route path="/specifications/:id" element={<SpecificationPage />} />
+          <Route path="/client-code" element={<ClientCodePage />} />
           <Route path="/designs/:id" element={<DesignPage />} />
           <Route path="*" element={<p className="text-sm">Page not found.</p>} />
         </Route>

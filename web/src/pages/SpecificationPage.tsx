@@ -85,6 +85,12 @@ function SpecificationWorkspace({ specification }: { specification: Specificatio
           >
             Export JSON
           </a>
+          <Link
+            to={`/client-code?specification=${specification.id}`}
+            className="inline-flex h-9 items-center rounded-md border border-zinc-300 bg-white px-3.5 text-sm font-medium hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:bg-zinc-800"
+          >
+            Client code
+          </Link>
           {specification.sourceUrl && (
             <Button variant="secondary" disabled={reimport.isPending} onClick={() => reimport.mutate()}>
               {reimport.isPending ? "Re-importing…" : "Re-import"}

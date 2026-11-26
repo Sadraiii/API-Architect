@@ -3,7 +3,10 @@ import { NavLink, Outlet, useNavigate } from "react-router";
 import { useCurrentUser, useLogout, useMarkIntroSeen } from "../api/auth";
 import { IntroTour } from "./IntroTour";
 
-const navItems = [{ to: "/projects", label: "Projects" }];
+const navItems = [
+  { to: "/projects", label: "Projects" },
+  { to: "/client-code", label: "Client code" },
+];
 
 export function AppShell() {
   const { data: user } = useCurrentUser();
