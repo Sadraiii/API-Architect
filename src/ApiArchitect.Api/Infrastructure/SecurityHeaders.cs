@@ -2,10 +2,7 @@ namespace ApiArchitect.Api.Infrastructure;
 
 public static class SecurityHeaders
 {
-    /// <summary>
-    /// Headers that cost nothing and close common holes: MIME sniffing, clickjacking and referrer leaks.
-    /// A Content-Security-Policy comes later, once Scalar and Monaco set what scripts the app needs.
-    /// </summary>
+    /// <summary>Blocks MIME sniffing, framing and referrer leaks. No Content-Security-Policy yet.</summary>
     public static IApplicationBuilder UseSecurityHeaders(this IApplicationBuilder app) =>
         app.Use(async (context, next) =>
         {

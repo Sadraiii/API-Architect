@@ -1,6 +1,5 @@
 namespace ApiArchitect.Api.Infrastructure;
 
-/// <summary>Bound from the "RateLimiting" configuration section.</summary>
 public sealed class RateLimitingOptions
 {
     public const string SectionName = "RateLimiting";
