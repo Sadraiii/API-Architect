@@ -29,6 +29,17 @@ The app runs outside Docker so it can reach APIs on your localhost. Rebuild `web
 To get a spec from your own ASP.NET Core API, use `/openapi/v1.json` (served when the app calls `AddOpenApi()` and
 `MapOpenApi()`).
 
+## Client code
+
+`Client code` in the sidebar (or the button on a specification) gives you C# to call one of your APIs from a new
+Visual Studio project. Pick the operations and a template:
+
+- Connector: a Console App that calls the API once. No NuGet packages.
+- Worker: a Worker Service that calls it on a timer. Needs `Microsoft.Extensions.Http`.
+
+You get an `ApiClient` class, the model classes, a `Program.cs` (and `Worker.cs`), and the steps to set the project
+up. Keys go in an environment variable or user secrets, never in the code.
+
 ## Settings
 
 In `src/ApiArchitect.Api/appsettings*.json`, or override with `dotnet user-secrets` or environment variables.

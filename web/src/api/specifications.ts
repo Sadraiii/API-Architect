@@ -37,11 +37,16 @@ export function useProjectSpecifications(projectId: string) {
   return useQuery({
     queryKey: projectListKey(projectId),
     queryFn: () => api<Specification[]>(`/api/projects/${projectId}/specifications`),
+    enabled: projectId !== "",
   });
 }
 
 export function useSpecification(id: string) {
-  return useQuery({ queryKey: specificationKey(id), queryFn: () => api<Specification>(`/api/specifications/${id}`) });
+  return useQuery({
+    queryKey: specificationKey(id),
+    queryFn: () => api<Specification>(`/api/specifications/${id}`),
+    enabled: id !== "",
+  });
 }
 
 /** The parsed OpenAPI document. Imported documents only change through a replace, so it never goes stale on its own. */
