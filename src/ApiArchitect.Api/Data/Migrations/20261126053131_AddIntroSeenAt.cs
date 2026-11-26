@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace ApiArchitect.Api.Data.Migrations;
 
 /// <inheritdoc />
-public partial class _20261126044909_AddIntroSeenAt : Migration
+public partial class _20261126053131_AddIntroSeenAt : Migration
 {
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)

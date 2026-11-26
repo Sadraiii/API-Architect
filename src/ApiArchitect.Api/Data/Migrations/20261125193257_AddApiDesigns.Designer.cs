@@ -13,8 +13,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ApiArchitect.Api.Data.Migrations;
 
 [DbContext(typeof(AppDbContext))]
-[Migration("20261126044909_AddIntroSeenAt")]
-partial class _20261126044909_AddIntroSeenAt
+[Migration("20261125193257_AddApiDesigns")]
+partial class _20261125193257_AddApiDesigns
 {
     /// <inheritdoc />
     protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -47,9 +47,6 @@ partial class _20261126044909_AddIntroSeenAt
 
                 b.Property<bool>("EmailConfirmed")
                     .HasColumnType("boolean");
-
-                b.Property<DateTimeOffset?>("IntroSeenAt")
-                    .HasColumnType("timestamp with time zone");
 
                 b.Property<bool>("LockoutEnabled")
                     .HasColumnType("boolean");
@@ -258,6 +255,42 @@ partial class _20261126044909_AddIntroSeenAt
                 b.HasIndex("FolderId");
 
                 b.ToTable("SavedRequests");
+            });
+
+        modelBuilder.Entity("ApiArchitect.Api.Features.Designs.ApiDesign", b =>
+            {
+                b.Property<Guid>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("uuid");
+
+                b.Property<string>("Content")
+                    .IsRequired()
+                    .HasColumnType("text");
+
+                b.Property<DateTimeOffset>("CreatedAt")
+                    .HasColumnType("timestamp with time zone");
+
+                b.Property<string>("Name")
+                    .IsRequired()
+                    .HasMaxLength(100)
+                    .HasColumnType("character varying(100)");
+
+                b.Property<Guid>("ProjectId")
+                    .HasColumnType("uuid");
+
+                b.Property<Guid?>("SpecificationId")
+                    .HasColumnType("uuid");
+
+                b.Property<DateTimeOffset>("UpdatedAt")
+                    .HasColumnType("timestamp with time zone");
+
+                b.HasKey("Id");
+
+                b.HasIndex("SpecificationId");
+
+                b.HasIndex("ProjectId", "UpdatedAt");
+
+                b.ToTable("ApiDesigns");
             });
 
         modelBuilder.Entity("ApiArchitect.Api.Features.Environments.ApiEnvironment", b =>
@@ -711,6 +744,24 @@ partial class _20261126044909_AddIntroSeenAt
                     .OnDelete(DeleteBehavior.Cascade);
 
                 b.Navigation("Collection");
+            });
+
+        modelBuilder.Entity("ApiArchitect.Api.Features.Designs.ApiDesign", b =>
+            {
+                b.HasOne("ApiArchitect.Api.Features.Projects.Project", "Project")
+                    .WithMany()
+                    .HasForeignKey("ProjectId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
+
+                b.HasOne("ApiArchitect.Api.Features.Specifications.ApiSpecification", "Specification")
+                    .WithMany()
+                    .HasForeignKey("SpecificationId")
+                    .OnDelete(DeleteBehavior.SetNull);
+
+                b.Navigation("Project");
+
+                b.Navigation("Specification");
             });
 
         modelBuilder.Entity("ApiArchitect.Api.Features.Environments.ApiEnvironment", b =>

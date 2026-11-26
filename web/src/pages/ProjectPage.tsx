@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { ApiError } from "../api/client";
 import { useDeleteProject, useProject, useUpdateProject } from "../api/projects";
+import { ProjectDesigns } from "../components/ProjectDesigns";
 import { ProjectForm } from "../components/ProjectForm";
 import { ProjectSpecifications } from "../components/ProjectSpecifications";
 import { Button, ErrorMessage } from "../components/ui";
@@ -83,6 +84,7 @@ export function ProjectPage() {
             </Link>
           </nav>
 
+          <ProjectDesigns projectId={p.id} />
           <ProjectSpecifications projectId={p.id} />
 
           <section className="mt-10 rounded-lg border border-red-200 p-4 dark:border-red-900">
