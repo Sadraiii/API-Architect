@@ -4,13 +4,23 @@ import { Button } from "./ui";
 interface TourStep {
   title: string;
   body: ReactNode;
-  /** The `data-tour` value of the element to highlight. Without one, or when it isn't on screen, the card is centred. */
-  target?: string;
+  /** Finds the element to highlight. Without one, or when it finds nothing, the card is centred. */
+  target?: () => Element | null;
   /** Shown when the target isn't on the current page, so the user knows where to look. */
   whereToFind?: string;
+  /** Leave the step out unless this is true when the tour opens. For features that may not be in this build. */
+  onlyIf?: () => boolean;
 }
 
-const steps: TourStep[] = [
+const tour = (name: string) => () => document.querySelector(`[data-tour="${name}"]`);
+const clientCodeLink = () => document.querySelector('a[href="/client-code"]');
+
+/** The Projects page button that creates a project from an existing spec. Not every build has it. */
+function findImportApiButton() {
+  return [...document.querySelectorAll("button")].find((button) => button.textContent?.trim() === "Import API") ?? null;
+}
+
+const allSteps: TourStep[] = [
   {
     title: "Welcome to API Architect",
     body: (
@@ -21,13 +31,19 @@ const steps: TourStep[] = [
     ),
   },
   {
-    title: "1. Create a project",
+    title: "Create a project",
     body: "A project holds one API: its specifications, designs, saved requests and environments. Click New project, give it a name and save.",
-    target: "new-project",
+    target: tour("new-project"),
     whereToFind: "Go to Projects and click New project.",
   },
   {
-    title: "2. Import or design your API",
+    title: "Or import an API you already have",
+    body: "Import API makes the project for you from an OpenAPI URL, file or pasted JSON, and names it after the API.",
+    target: findImportApiButton,
+    onlyIf: () => findImportApiButton() !== null,
+  },
+  {
+    title: "Import or design your API",
     body: (
       <>
         Inside a project, click <b>Import OpenAPI</b> and pick or paste a JSON document. For an ASP.NET Core API that is
@@ -35,23 +51,23 @@ const steps: TourStep[] = [
         to build models and endpoints, then generate the spec and a .NET project from it.
       </>
     ),
-    target: "import-spec",
+    target: tour("import-spec"),
     whereToFind: "Open a project to see Import OpenAPI and New design.",
   },
   {
-    title: "3. Browse the docs",
+    title: "Browse the docs",
     body: "Open a specification to read its API reference, list endpoints and look at schemas. Try it out in the reference sends through the same runner as below.",
-    target: "specifications",
+    target: tour("specifications"),
     whereToFind: "Imported specifications are listed on the project page.",
   },
   {
-    title: "4. Send requests",
+    title: "Send requests",
     body: "Send a request builds a call with method, URL, headers, auth and body. It runs from the app's server, so APIs on localhost work. You get status, headers, body and timing back.",
-    target: "send-request",
+    target: tour("send-request"),
     whereToFind: "Open a project and click Send a request.",
   },
   {
-    title: "5. Save work in collections",
+    title: "Save work in collections",
     body: (
       <>
         Collections keep requests in folders so you can send them again. Environments hold variables like{" "}
@@ -59,13 +75,19 @@ const steps: TourStep[] = [
         staging.
       </>
     ),
-    target: "project-workspace",
+    target: tour("project-workspace"),
     whereToFind: "Open a project and use the Collections and Environments links.",
+  },
+  {
+    title: "Call your API from C#",
+    body: "Client code gives you C# that calls one of your imported APIs: pick a specification, the operations you need and the kind of app, then paste it into a new project. Each specification page has a Client code button too.",
+    target: clientCodeLink,
+    onlyIf: () => clientCodeLink() !== null,
   },
   {
     title: "That's it",
     body: "Start by creating a project. Click Introduction here any time to see this tour again.",
-    target: "help",
+    target: tour("help"),
   },
 ];
 
@@ -78,6 +100,15 @@ const MARGIN = 16;
  * and what closing means; this component only walks through the steps.
  */
 export function IntroTour({ onClose }: { onClose: () => void }) {
+  // Decide once, when the tour opens, which optional steps this build has.
+  // This waits for the first commit, because on the first visit the page renders together with the tour.
+  const [steps, setSteps] = useState<TourStep[]>();
+  useLayoutEffect(() => setSteps(allSteps.filter((step) => step.onlyIf?.() ?? true)), []);
+
+  return steps ? <TourCard steps={steps} onClose={onClose} /> : null;
+}
+
+function TourCard({ steps, onClose }: { steps: TourStep[]; onClose: () => void }) {
   const [index, setIndex] = useState(0);
   const [rect, setRect] = useState<DOMRect | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -90,7 +121,7 @@ export function IntroTour({ onClose }: { onClose: () => void }) {
 
   // Find the target and bring it into view when the step changes.
   useLayoutEffect(() => {
-    const element = step.target ? document.querySelector(`[data-tour="${step.target}"]`) : null;
+    const element = step.target?.() ?? null;
     element?.scrollIntoView({ block: "center", behavior: "instant" });
     setRect(element?.getBoundingClientRect() ?? null);
     cardRef.current?.focus();
@@ -99,9 +130,10 @@ export function IntroTour({ onClose }: { onClose: () => void }) {
   // Keep the highlight on the target while the page loads data, scrolls or resizes.
   // Polling is simpler than wiring resize, scroll and mutation observers, and is cheap at this rate.
   useEffect(() => {
-    if (!step.target) return;
+    const find = step.target;
+    if (!find) return;
     const timer = window.setInterval(() => {
-      const element = document.querySelector(`[data-tour="${step.target}"]`);
+      const element = find();
       const latest = element?.getBoundingClientRect() ?? null;
       setRect((current) => (sameRect(current, latest) ? current : latest));
     }, 200);
