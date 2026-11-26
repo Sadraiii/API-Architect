@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using ApiArchitect.Api.Features.Execution;
 
 namespace ApiArchitect.Api.Features.Collections;
 
@@ -300,7 +301,7 @@ internal static class PostmanCollectionFormat
             }
 
             var method = (GetString(request, "method") ?? "GET").ToUpperInvariant();
-            if (!CollectionRules.Methods.Contains(method))
+            if (!ExecutionRules.Methods.Contains(method))
             {
                 Warnings.Add($"\"{path}\" uses the {method} method, which isn't supported, and was skipped.");
                 return null;

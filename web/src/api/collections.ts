@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "./client";
+import type { HttpMethod } from "./execution";
 
 export interface KeyValue {
   name: string;
@@ -16,10 +17,6 @@ export interface RequestAuth {
   keyName: string | null;
   keyLocation: KeyLocation | null;
 }
-
-/** Must match the AllowedValues list on SavedRequestInput in the API. */
-export const httpMethods = ["GET", "POST", "PUT", "PATCH", "DELETE"] as const;
-export type HttpMethod = (typeof httpMethods)[number];
 
 export interface CollectionSummary {
   id: string;

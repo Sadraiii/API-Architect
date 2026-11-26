@@ -6,8 +6,6 @@ namespace ApiArchitect.Api.Features.Collections;
 /// </summary>
 internal sealed class FolderTree(IReadOnlyDictionary<Guid, Guid?> parents)
 {
-    public bool Contains(Guid folderId) => parents.ContainsKey(folderId);
-
     /// <summary>
     /// Why <paramref name="folderId"/> (null for a new folder) can't go under <paramref name="newParentId"/>,
     /// or null if it can.

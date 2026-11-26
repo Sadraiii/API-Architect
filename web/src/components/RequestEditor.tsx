@@ -1,18 +1,16 @@
 import { useEffect, useState } from "react";
 import {
-  httpMethods,
   useDeleteRequest,
   useDuplicateRequest,
   useSavedRequest,
   useUpdateRequest,
   type CollectionDetail,
-  type HttpMethod,
   type RequestAuth,
   type SavedRequest,
   type SavedRequestInput,
 } from "../api/collections";
 import { previewUrl, useActiveEnvironmentId, useEnvironments } from "../api/environments";
-import { useSendSavedRequest } from "../api/execution";
+import { httpMethods, useSendSavedRequest, type HttpMethod } from "../api/execution";
 import { ResponseViewer } from "./ResponseViewer";
 import { folderPaths } from "./CollectionTree";
 import { KeyValueTable } from "./KeyValueTable";
