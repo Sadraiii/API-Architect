@@ -121,7 +121,6 @@ function DocumentView({ view, document, projectId }: { view: (typeof views)[numb
     case "reference":
       return (
         <Suspense fallback={<p className="text-sm text-zinc-500">Loading reference…</p>}>
-          {/* Try it out runs through the server-side runner, like the request page, and shows up in its history. */}
           <ScalarReference document={document} sendRequest={sendRequest} />
         </Suspense>
       );
